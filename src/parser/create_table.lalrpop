@@ -1,0 +1,30 @@
+use crate::model::table_expr::{TableDef, ColumnDef, TableLevelRule};
+
+grammar;
+
+pub CreateTableExpr: Box<TableDef> = "CREATE TABLE IF NOT EXISTS" <n:Identifier> "{" <cols:Comma<ColumnDefExpr>> "}" ";" => 
+    Box::new(TableDef{table_ref: n, columns: cols});
+
+pub ColumnDefExpr: Box<ColumnDef> = {
+    <n:Identifier> <d:Identifier> => Box::new(ColumnDef {name: n, data_type: d})
+};
+
+// pub TableRefExpr: Vec<u8> = <s:SchemaNameRefExpr?>
+// pub SchemaNameRefExpr: Vec<u8> = <s:Identifier> "." => s + "."
+
+Comma<T>: Vec<T> = {
+    <mut v:(<T> ",")*> <e:T?> => match e {
+        None => v,
+        Some(e) => {
+            v.push(e);
+            v
+        }
+    }
+};
+
+// TableRef: Vec<u8> = <s:r#"[a-zA-Z0-9]+(\.[a-zA-Z0-9])?"#> => s.bytes().collect();
+// NonNumIdentifier: Vec<u8> = <s:r#"[a-zA-Z]+"#> => s.bytes().collect();
+
+Identifier: String = <s:r"[a-zA-Z][a-zA-Z0-9]*"> => s.to_owned();
+
+// String: Vec<u8> = <s:r#"'[^']+'"#> => s.bytes().collect();
