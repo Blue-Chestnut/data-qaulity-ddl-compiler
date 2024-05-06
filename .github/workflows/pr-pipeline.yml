@@ -23,7 +23,7 @@ jobs:
 
       - name: Build
         run: |
-          cargo build all --release
+          cargo build --release
 
       - name: check formatting
         run: |
