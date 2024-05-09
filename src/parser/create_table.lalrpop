@@ -1,11 +1,18 @@
-use crate::model::table_expr::{TableDef, ColumnDef, TableLevelRule, DataType};
+use crate::model::table_expr::{TableDef, ColumnDef, TableLevelRule, DataType, TableRef};
 
 grammar;
 
 pub CreateTableExpr: Box<TableDef> = {
-    CreateTableString <n:Identifier> "{" <cols:Comma<ColumnDefExpr>> "}" ";" =>
+    CreateTableString <n:TableNameExpr> "{" <cols:Comma<ColumnDefExpr>> "}" ";" =>
         Box::new(TableDef{table_ref: n, columns: cols})
 };
+
+pub TableNameExpr: TableRef = {
+    <n:Identifier> => TableRef {table_name: n, ..Default::default()},
+    <s:Identifier> "." <t:Identifier> => TableRef {table_name: t, schema_name: Some(s), ..Default::default()},
+    <n:Identifier> <a: Text> => TableRef {table_name: n, alias: Some(a), ..Default::default()},
+    <s:Identifier> "." <t:Identifier> <a: Text> => TableRef {table_name: t, schema_name: Some(s), alias: Some(a)},
+}
 
 pub ColumnDefExpr: Box<ColumnDef> = {
     <n:Identifier> <d:DataTypeExpr> => Box::new(ColumnDef {name: n, data_type: d, ..Default::default()}),
@@ -26,9 +33,6 @@ pub DataTypeExpr: DataType = {
     <n:Identifier> "(" <i1:uNumber> "," <i2:uNumber> ")" => DataType {name: n, size: Some([Some(i1), Some(i2)])},
 };
 
-// pub TableRefExpr: Vec<u8> = <s:SchemaNameRefExpr?>
-// pub SchemaNameRefExpr: Vec<u8> = <s:Identifier> "." => s + "."
-
 Comma<T>: Vec<T> = {
     <mut v:(<T> ",")*> <e:T?> => match e {
         None => v,
@@ -40,10 +44,5 @@ Comma<T>: Vec<T> = {
 };
 
 uNumber: u32 = <s:r"[1-9][0-9]*"> => s.to_owned().parse::<u32>().unwrap();
-
-// TableRef: Vec<u8> = <s:r#"[a-zA-Z0-9]+(\.[a-zA-Z0-9])?"#> => s.bytes().collect();
-// NonNumIdentifier: Vec<u8> = <s:r#"[a-zA-Z]+"#> => s.bytes().collect();
-
-Identifier: String = <s:r"[a-zA-Z][a-zA-Z0-9]*"> => s.to_owned();
-
-// String: Vec<u8> = <s:r#"'[^']+'"#> => s.bytes().collect();
+Identifier: String = <s:r"[a-zA-Z_][a-zA-Z0-9\-_]*"> => s.to_owned();
+Text: String = <s:r#"('[a-zA-Z0-9_][^['"]]*')|("[a-zA-Z0-9_][^['"]]*")"#> => s.to_owned()[1..(s.len()-1)].to_string();

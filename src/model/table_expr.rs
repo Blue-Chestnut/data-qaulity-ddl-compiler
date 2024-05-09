@@ -2,9 +2,51 @@ use std::fmt::Debug;
 use std::str::FromStr;
 
 pub struct TableDef {
-    pub table_ref: String,
+    pub table_ref: TableRef,
     pub columns: Vec<Box<ColumnDef>>,
     // table_level_rules: Vec<TableLevelRule>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TableRef {
+    pub table_name: String,
+    pub schema_name: Option<String>,
+    pub alias: Option<String>,
+}
+
+impl TableRef {
+    pub fn from_str(table_name: &str, schema_name: Option<&str>, alias: Option<&str>) -> Self {
+        Self {
+            table_name: String::from(table_name),
+            schema_name: schema_name.map(String::from),
+            alias: alias.map(String::from),
+        }
+    }
+}
+
+impl FromStr for TableRef {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.split('.');
+        let table_name = parts.next().unwrap();
+        let schema_name = parts.next();
+        Ok(Self {
+            table_name: String::from(table_name),
+            schema_name: schema_name.map(String::from),
+            alias: None,
+        })
+    }
+}
+
+impl Default for TableRef {
+    fn default() -> Self {
+        Self {
+            table_name: String::new(),
+            schema_name: None,
+            alias: None,
+        }
+    }
 }
 
 pub struct ColumnDef {
