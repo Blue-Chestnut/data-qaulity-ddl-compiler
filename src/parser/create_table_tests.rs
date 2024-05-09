@@ -6,8 +6,8 @@ lalrpop_mod!(pub table, "/parser/create_table.rs");
 #[cfg(test)]
 pub mod create_table_tests {
     use super::*;
-    use crate::model::table_expr::{ColumnDef, TableRef};
     use crate::model::table_expr::DataType;
+    use crate::model::table_expr::{ColumnDef, TableRef};
 
     #[rstest]
     #[case("CREATE TABLE IF NOT EXISTS Inventory {Id INT,Title VARCHAR,  };",
@@ -106,7 +106,13 @@ pub mod create_table_tests {
     #[case(" Id33 INT PRIMARY KEY", "Id33", DataType::f_name("INT"), true, true)]
     #[case(" Id33 INT primaRY KeY", "Id33", DataType::f_name("INT"), true, true)]
     #[case(" Id33 TEXT NOT NULL", "Id33", DataType::f_name("TEXT"), true, false)]
-    #[case("_Id-3_3 TEXT NOT NULL", "_Id-3_3", DataType::f_name("TEXT"), true, false)]
+    #[case(
+        "_Id-3_3 TEXT NOT NULL",
+        "_Id-3_3",
+        DataType::f_name("TEXT"),
+        true,
+        false
+    )]
     #[case(
         " Id33 DOUBLE not null",
         "Id33",
