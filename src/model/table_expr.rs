@@ -28,14 +28,14 @@ impl Default for ColumnDef {
 #[derive(Clone, Debug, PartialEq)]
 pub struct DataType {
     pub name: String,
-    pub size : Option<[Option<u32>;2]>
+    pub size: Option<[Option<u32>; 2]>,
 }
 
 impl Default for DataType {
     fn default() -> Self {
         Self {
             name: String::new(),
-            size: None
+            size: None,
         }
     }
 }
@@ -44,14 +44,14 @@ impl DataType {
     pub fn f_name(name: &str) -> Self {
         Self {
             name: String::from(name),
-            size: None
+            size: None,
         }
     }
 
     pub fn f_name_1_size(name: &str, size1: u32) -> Self {
         Self {
             name: String::from(name),
-            size: Some([Some(size1), None])
+            size: Some([Some(size1), None]),
         }
     }
 }

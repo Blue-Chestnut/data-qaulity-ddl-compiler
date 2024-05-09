@@ -81,9 +81,27 @@ pub mod create_table_tests {
     #[case(" Id33 INT PRIMARY KEY", "Id33", DataType::f_name("INT"), true, true)]
     #[case(" Id33 INT primaRY KeY", "Id33", DataType::f_name("INT"), true, true)]
     #[case(" Id33 TEXT NOT NULL", "Id33", DataType::f_name("TEXT"), true, false)]
-    #[case(" Id33 DOUBLE not null", "Id33", DataType::f_name("DOUBLE"), true, false)]
-    #[case(" Id33 DOUBLE not NuLL", "Id33", DataType::f_name("DOUBLE"), true, false)]
-    #[case(" Id33 DOUBLE(30) not NuLL", "Id33", DataType::f_name_1_size("DOUBLE", 30), true, false)]
+    #[case(
+        " Id33 DOUBLE not null",
+        "Id33",
+        DataType::f_name("DOUBLE"),
+        true,
+        false
+    )]
+    #[case(
+        " Id33 DOUBLE not NuLL",
+        "Id33",
+        DataType::f_name("DOUBLE"),
+        true,
+        false
+    )]
+    #[case(
+        " Id33 DOUBLE(30) not NuLL",
+        "Id33",
+        DataType::f_name_1_size("DOUBLE", 30),
+        true,
+        false
+    )]
     #[case(" Id33 DOUBLE(30,5) not NuLL", "Id33", DataType {name: String::from("DOUBLE"), size: Some([Some(30), Some(5)])}, true, false)]
     fn test_column_def_success(
         #[case] input_value: &str,
