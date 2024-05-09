@@ -1,12 +1,29 @@
-use crate::model::table_expr::{TableDef, ColumnDef, TableLevelRule};
+use crate::model::table_expr::{TableDef, ColumnDef, TableLevelRule, DataType};
 
 grammar;
 
-pub CreateTableExpr: Box<TableDef> = "CREATE TABLE IF NOT EXISTS" <n:Identifier> "{" <cols:Comma<ColumnDefExpr>> "}" ";" => 
-    Box::new(TableDef{table_ref: n, columns: cols});
+pub CreateTableExpr: Box<TableDef> = {
+    CreateTableString <n:Identifier> "{" <cols:Comma<ColumnDefExpr>> "}" ";" =>
+        Box::new(TableDef{table_ref: n, columns: cols})
+};
 
 pub ColumnDefExpr: Box<ColumnDef> = {
-    <n:Identifier> <d:Identifier> => Box::new(ColumnDef {name: n, data_type: d})
+    <n:Identifier> <d:DataTypeExpr> => Box::new(ColumnDef {name: n, data_type: d, ..Default::default()}),
+    <n:Identifier> <d:DataTypeExpr> r"(?i)NOT NULL" => Box::new(ColumnDef {name: n, data_type: d, not_null: true,
+            ..Default::default()}),
+    <n:Identifier> <d:DataTypeExpr> r"(?i)PRIMARY KEY" => Box::new(ColumnDef {name: n, data_type: d, not_null: true,
+            primary_key: true}),
+};
+
+pub CreateTableString: bool = {
+    r"(?i)CREATE TABLE IF NOT EXISTS" => true,
+    r"(?i)CREATE TABLE" => true,
+};
+
+pub DataTypeExpr: DataType = {
+    <n:Identifier> => DataType {name: n, size: None},
+    <n:Identifier> "(" <i:uNumber> ")" => DataType {name: n, size: Some([Some(i), None])},
+    <n:Identifier> "(" <i1:uNumber> "," <i2:uNumber> ")" => DataType {name: n, size: Some([Some(i1), Some(i2)])},
 };
 
 // pub TableRefExpr: Vec<u8> = <s:SchemaNameRefExpr?>
@@ -21,6 +38,8 @@ Comma<T>: Vec<T> = {
         }
     }
 };
+
+uNumber: u32 = <s:r"[1-9][0-9]*"> => s.to_owned().parse::<u32>().unwrap();
 
 // TableRef: Vec<u8> = <s:r#"[a-zA-Z0-9]+(\.[a-zA-Z0-9])?"#> => s.bytes().collect();
 // NonNumIdentifier: Vec<u8> = <s:r#"[a-zA-Z]+"#> => s.bytes().collect();
