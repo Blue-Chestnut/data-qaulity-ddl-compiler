@@ -134,7 +134,13 @@ pub mod create_table_tests {
         true,
         false
     )]
-    #[case(" Id33 DOUBLE(30,5) not NuLL", "Id33", DataType {name: String::from("DOUBLE"), size: Some([Some(30), Some(5)])}, true, false)]
+    #[case(
+        " Id33 DOUBLE(30,5) not NuLL",
+        "Id33",
+        DataType {name: String::from("DOUBLE"), size: Some([Some(30), Some(5)])},
+        true, 
+        false
+    )]
     fn test_column_def_success(
         #[case] input_value: &str,
         #[case] name: &str,
