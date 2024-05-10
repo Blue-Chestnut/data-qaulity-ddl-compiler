@@ -138,7 +138,7 @@ pub mod create_table_tests {
         " Id33 DOUBLE(30,5) not NuLL",
         "Id33",
         DataType {name: String::from("DOUBLE"), size: Some([Some(30), Some(5)])},
-        true, 
+        true,
         false
     )]
     fn test_column_def_success(
