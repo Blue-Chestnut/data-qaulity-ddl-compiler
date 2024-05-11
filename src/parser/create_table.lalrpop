@@ -1,9 +1,11 @@
-use crate::model::table_expr::{TableDef, ColumnDef, TableLevelRule, DataType, TableRef};
+use crate::model::table_expr::{TableDef, ColumnDef, DataType, TableRef};
+use crate::model::column_rule::ColumnRule;
+use crate::model::rule_ext_config::{RuleExtConfig};
 
 grammar;
 
 pub CreateTableExpr: Box<TableDef> = {
-    CreateTableString <n:TableNameExpr> "{" <cols:Comma<ColumnDefExpr>> "}" ";" =>
+    CreateTableString <n:TableNameExpr> "{" <cols:Comma<ColumnWithRulesExpr>> "}" ";" =>
         Box::new(TableDef{table_ref: n, columns: cols})
 };
 
@@ -14,12 +16,26 @@ pub TableNameExpr: TableRef = {
     <s:Identifier> "." <t:Identifier> <a: Text> => TableRef {table_name: t, schema_name: Some(s), alias: Some(a)},
 }
 
-pub ColumnDefExpr: Box<ColumnDef> = {
-    <n:Identifier> <d:DataTypeExpr> => Box::new(ColumnDef {name: n, data_type: d, ..Default::default()}),
-    <n:Identifier> <d:DataTypeExpr> r"(?i)NOT NULL" => Box::new(ColumnDef {name: n, data_type: d, not_null: true,
-            ..Default::default()}),
-    <n:Identifier> <d:DataTypeExpr> r"(?i)PRIMARY KEY" => Box::new(ColumnDef {name: n, data_type: d, not_null: true,
-            primary_key: true}),
+pub ColumnWithRulesExpr: ColumnDef = {
+    #[precedence(level="0")]
+    <c:ColumnDefExpr> "{" <rules:Comma<ColumnRuleExpr>> "}" => ColumnDef {name: c.name, data_type: c.data_type,
+            not_null: c.not_null, primary_key: c.primary_key, rules},
+    #[precedence(level="1")]
+    <c:ColumnDefExpr> => c
+};
+
+pub ColumnDefExpr: ColumnDef = {
+    <n:Identifier> <d:DataTypeExpr> => ColumnDef {name: n, data_type: d, ..Default::default()},
+    <n:Identifier> <d:DataTypeExpr> r"(?i)NOT NULL" => ColumnDef {name: n, data_type: d, not_null: true,
+            ..Default::default()},
+    <n:Identifier> <d:DataTypeExpr> r"(?i)PRIMARY KEY" => ColumnDef {name: n, data_type: d, not_null: true,
+            primary_key: true, ..Default::default()},
+};
+
+pub ColumnRuleExpr: ColumnRule = {
+    r"-REGEX" <p:Text> => ColumnRule::RegexPattern {name: String::new(), pattern: p, rule_ext_config: RuleExtConfig::new_empty()},
+    r"-LIKE" <p:Text> => ColumnRule::LikePattern {name: String::new(), pattern: p, rule_ext_config: RuleExtConfig::new_empty()},
+    r"-CONTAINS" <p:Text> => ColumnRule::ContainsValue {name: String::new(), value: p, rule_ext_config: RuleExtConfig::new_empty()},
 };
 
 pub CreateTableString: bool = {
@@ -45,4 +61,4 @@ Comma<T>: Vec<T> = {
 
 uNumber: u32 = <s:r"[1-9][0-9]*"> => s.to_owned().parse::<u32>().unwrap();
 Identifier: String = <s:r"[a-zA-Z_][a-zA-Z0-9\-_]*"> => s.to_owned();
-Text: String = <s:r#"('[a-zA-Z0-9_][^['"]]*')|("[a-zA-Z0-9_][^['"]]*")"#> => s.to_owned()[1..(s.len()-1)].to_string();
+Text: String = <s:r#"('[^['"]]+')|("[^['"]]+")"#> => s.to_owned()[1..(s.len()-1)].to_string();

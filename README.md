@@ -31,4 +31,9 @@ A compiler for extending DDLs to include data quality rules.
 
 ### Examples
 
+## Ways of Working
+
+### Pushing Code
+
+* make sure to run `cargo fmt` and `cargo clippy` before raising a PR
 
