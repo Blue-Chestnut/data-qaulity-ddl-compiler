@@ -187,11 +187,18 @@ fn test_column_def_failure(#[case] input_value: &str) {
     rules: vec![ColumnRule::RegexPattern {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), pattern: "^(?=(?:\\D*\\d){10}(?:(?:\\D*\\d){3})?$)[\\d-]+$".to_owned()}]
 })]
 #[case("ISBN VACHAR(20) { -LIKE \"%test%\" }", ColumnDef {
-name: String::from("ISBN"),
-data_type: DataType::f_name_1_size("VACHAR", 20),
-not_null: false,
-primary_key: false,
-rules: vec![ColumnRule::LikePattern {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), pattern: "%test%".to_owned()}]
+    name: String::from("ISBN"),
+    data_type: DataType::f_name_1_size("VACHAR", 20),
+    not_null: false,
+    primary_key: false,
+    rules: vec![ColumnRule::LikePattern {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), pattern: "%test%".to_owned()}]
+})]
+#[case("ISBN VACHAR(20) { -CONTAINS \"test\" }", ColumnDef {
+    name: String::from("ISBN"),
+    data_type: DataType::f_name_1_size("VACHAR", 20),
+    not_null: false,
+    primary_key: false,
+    rules: vec![ColumnRule::ContainsValue {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), value: "test".to_owned()}]
 })]
 fn test_column_with_rule_expr_success(
     #[case] input_value: &str,

@@ -35,6 +35,7 @@ pub ColumnDefExpr: ColumnDef = {
 pub ColumnRuleExpr: ColumnRule = {
     r"-REGEX" <p:Text> => ColumnRule::RegexPattern {name: String::new(), pattern: p, rule_ext_config: RuleExtConfig::new_empty()},
     r"-LIKE" <p:Text> => ColumnRule::LikePattern {name: String::new(), pattern: p, rule_ext_config: RuleExtConfig::new_empty()},
+    r"-CONTAINS" <p:Text> => ColumnRule::ContainsValue {name: String::new(), value: p, rule_ext_config: RuleExtConfig::new_empty()},
 };
 
 pub CreateTableString: bool = {
