@@ -1,13 +1,17 @@
-use lalrpop_util::lalrpop_mod;
-use rstest::rstest;
 
-lalrpop_mod!(pub table, "/parser/create_table.rs");
 
 #[cfg(test)]
 pub mod create_table_tests {
-    use super::*;
+    use rstest::rstest;
+    use lalrpop_util::lalrpop_mod;
+
+    use crate::model::column_rule::ColumnRule;
+    use crate::model::rule_ext_config::RuleExtConfig;
     use crate::model::table_expr::DataType;
     use crate::model::table_expr::{ColumnDef, TableRef};
+
+
+    lalrpop_mod!(pub table, "/parser/create_table.rs");
 
     #[rstest]
     #[case("CREATE TABLE IF NOT EXISTS Inventory {Id INT,Title VARCHAR,  };",
@@ -58,7 +62,7 @@ pub mod create_table_tests {
     #[case(" create table\n Test33 \n{\nId FLOAT PRIMARY KEY,\nPrice FLOAT,\nNotes TEXT not null\n}\n;\n",
     TableRef::from_str("Test33", None, None),
     vec![
-    ColumnDef {name: String::from("Id"), data_type: DataType::f_name("FLOAT"), primary_key: true, not_null: true},
+    ColumnDef {name: String::from("Id"), data_type: DataType::f_name("FLOAT"), primary_key: true, not_null: true, ..Default::default()},
     ColumnDef {name: String::from("Price"), data_type: DataType::f_name("FLOAT"), ..Default::default()},
     ColumnDef {name: String::from("Notes"), data_type: DataType::f_name("TEXT"), not_null: true,..Default::default()},
     ])]
@@ -153,7 +157,7 @@ pub mod create_table_tests {
 
         assert!(parsed_result_ref.is_ok(), "{:?}", parsed_result_ref.err());
 
-        let column_def = parsed_result_ref.unwrap().as_ref();
+        let column_def = parsed_result_ref.unwrap();
 
         assert_eq!(column_def.data_type, date_type);
         assert_eq!(column_def.name, name);
@@ -169,9 +173,43 @@ pub mod create_table_tests {
     #[case("Id INT PRIMARY")]
     #[case("Id INT NOT")]
     #[case("Id TEXT NULL")]
+    #[case("ISBN VACHAR(20) { -LIKE \"%test%\" ")]
+    #[case("ISBN VACHAR(20) { LIKE \"%test%\" }")]
     fn test_column_def_failure(#[case] input_value: &str) {
         assert!(table::ColumnDefExprParser::new()
             .parse(input_value)
             .is_err());
+    }
+
+    #[rstest]
+    #[case("ISBN VACHAR(20) { -REGEX \"^(?=(?:\\D*\\d){10}(?:(?:\\D*\\d){3})?$)[\\d-]+$\" }", ColumnDef {
+        name: String::from("ISBN"),
+        data_type: DataType::f_name_1_size("VACHAR", 20),
+        not_null: false,
+        primary_key: false,
+        rules: vec![ColumnRule::RegexPattern {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), pattern: "^(?=(?:\\D*\\d){10}(?:(?:\\D*\\d){3})?$)[\\d-]+$".to_owned()}]
+    })]
+    #[case("ISBN VACHAR(20) { -LIKE \"%test%\" }", ColumnDef {
+    name: String::from("ISBN"),
+    data_type: DataType::f_name_1_size("VACHAR", 20),
+    not_null: false,
+    primary_key: false,
+    rules: vec![ColumnRule::LikePattern {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), pattern: "%test%".to_owned()}]
+    })]
+    fn test_column_with_rule_expr_success(
+        #[case] input_value: &str,
+        #[case] desired_column: ColumnDef,
+    ) {
+        let parsed_result = table::ColumnWithRulesExprParser::new().parse(input_value);
+        let parsed_result_ref = parsed_result.as_ref();
+
+        assert!(parsed_result_ref.is_ok(), "{:?}", parsed_result_ref.err());
+
+        let column_def = parsed_result_ref.unwrap();
+        assert_eq!(column_def.rules, desired_column.rules);
+        assert_eq!(column_def.name, desired_column.name);
+        assert_eq!(column_def.data_type, desired_column.data_type);
+        assert_eq!(column_def.not_null, desired_column.not_null);
+        assert_eq!(column_def.primary_key, desired_column.primary_key);
     }
 }

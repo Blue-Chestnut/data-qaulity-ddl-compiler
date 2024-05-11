@@ -1,13 +1,14 @@
+use crate::model::column_rule::ColumnRule;
 use std::fmt::Debug;
 use std::str::FromStr;
 
 pub struct TableDef {
     pub table_ref: TableRef,
-    pub columns: Vec<Box<ColumnDef>>,
+    pub columns: Vec<ColumnDef>,
     // table_level_rules: Vec<TableLevelRule>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct TableRef {
     pub table_name: String,
     pub schema_name: Option<String>,
@@ -39,47 +40,26 @@ impl FromStr for TableRef {
     }
 }
 
-impl Default for TableRef {
-    fn default() -> Self {
-        Self {
-            table_name: String::new(),
-            schema_name: None,
-            alias: None,
-        }
-    }
-}
-
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct ColumnDef {
     pub name: String,
     pub data_type: DataType,
     pub not_null: bool,
     pub primary_key: bool,
+    pub rules: Vec<ColumnRule>,
 }
 
-impl Default for ColumnDef {
-    fn default() -> Self {
-        Self {
-            name: String::new(),
-            data_type: DataType::default(),
-            not_null: false,
-            primary_key: false,
-        }
+impl ColumnDef {
+    pub fn add_rules(&mut self, rules: Vec<ColumnRule>) -> &mut Self {
+        self.rules.extend(rules);
+        self
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct DataType {
     pub name: String,
     pub size: Option<[Option<u32>; 2]>,
-}
-
-impl Default for DataType {
-    fn default() -> Self {
-        Self {
-            name: String::new(),
-            size: None,
-        }
-    }
 }
 
 impl DataType {
@@ -96,8 +76,4 @@ impl DataType {
             size: Some([Some(size1), None]),
         }
     }
-}
-
-pub struct TableLevelRule {
-    pub name: String,
 }
