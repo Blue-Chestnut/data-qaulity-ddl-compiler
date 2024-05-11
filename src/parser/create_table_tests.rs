@@ -1,12 +1,10 @@
-
-use rstest::rstest;
 use lalrpop_util::lalrpop_mod;
+use rstest::rstest;
 
 use crate::model::column_rule::ColumnRule;
 use crate::model::rule_ext_config::RuleExtConfig;
 use crate::model::table_expr::DataType;
 use crate::model::table_expr::{ColumnDef, TableRef};
-
 
 lalrpop_mod!(pub table, "/parser/create_table.rs");
 
