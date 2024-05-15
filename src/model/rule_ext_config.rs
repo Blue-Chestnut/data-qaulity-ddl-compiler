@@ -15,7 +15,7 @@ pub struct RuleExtConfig {
     // - labels: Vec<Label>
 }
 
-impl Default for RuleExtConfig{
+impl Default for RuleExtConfig {
     fn default() -> Self {
         RuleExtConfig::new_empty()
     }

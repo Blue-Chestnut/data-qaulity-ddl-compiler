@@ -20,12 +20,17 @@ impl Default for LikePattern {
 }
 
 impl LikePattern {
-    pub fn new(name: Option<String>, pattern: String, rule_ext_config: Option<RuleExtConfig>, threshold: Option<f32>) -> Self {
+    pub fn new(
+        name: Option<String>,
+        pattern: String,
+        rule_ext_config: Option<RuleExtConfig>,
+        threshold: Option<f32>,
+    ) -> Self {
         Self {
             name: name.unwrap_or_default(),
             pattern,
             rule_ext_config: rule_ext_config.unwrap_or_default(),
-            threshold: threshold.unwrap_or_else(|| 1.0)
+            threshold: threshold.unwrap_or_else(|| 1.0),
         }
     }
 }
@@ -50,12 +55,17 @@ impl Default for RegexPattern {
 }
 
 impl RegexPattern {
-    pub fn new(name: Option<String>, pattern: String, rule_ext_config: Option<RuleExtConfig>, threshold: Option<f32>) -> Self {
+    pub fn new(
+        name: Option<String>,
+        pattern: String,
+        rule_ext_config: Option<RuleExtConfig>,
+        threshold: Option<f32>,
+    ) -> Self {
         Self {
             name: name.unwrap_or_default(),
             pattern,
             rule_ext_config: rule_ext_config.unwrap_or_default(),
-            threshold: threshold.unwrap_or_else(|| 1.0)
+            threshold: threshold.unwrap_or_else(|| 1.0),
         }
     }
 }
@@ -80,12 +90,17 @@ impl Default for ContainsValue {
 }
 
 impl ContainsValue {
-    pub fn new(name: Option<String>, value: String, rule_ext_config: Option<RuleExtConfig>, threshold: Option<f32>) -> Self {
+    pub fn new(
+        name: Option<String>,
+        value: String,
+        rule_ext_config: Option<RuleExtConfig>,
+        threshold: Option<f32>,
+    ) -> Self {
         Self {
             name: name.unwrap_or_default(),
             value,
             rule_ext_config: rule_ext_config.unwrap_or_default(),
-            threshold: threshold.unwrap_or_else(|| 1.0)
+            threshold: threshold.unwrap_or_else(|| 1.0),
         }
     }
 }

@@ -1,4 +1,3 @@
-
 pub const PYTHON_PYDEEQU_RESULT_1: &str = "from pyspark.sql import SparkSession, DataFrame
 from pydeequ import deequ_maven_coord, f2j_maven_coord
 from pyspark.sql.functions import lit
