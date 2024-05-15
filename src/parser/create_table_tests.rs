@@ -1,7 +1,7 @@
 use lalrpop_util::lalrpop_mod;
 use rstest::rstest;
 
-use crate::model::column_rule::ColumnRule;
+use crate::model::column_rule::{ColumnRule, ContainsValue, LikePattern, RegexPattern};
 use crate::model::rule_ext_config::RuleExtConfig;
 use crate::model::table_expr::DataType;
 use crate::model::table_expr::{ColumnDef, TableRef};
@@ -61,6 +61,13 @@ ColumnDef {name: String::from("Id"), data_type: DataType::f_name("FLOAT"), prima
 ColumnDef {name: String::from("Price"), data_type: DataType::f_name("FLOAT"), ..Default::default()},
 ColumnDef {name: String::from("Notes"), data_type: DataType::f_name("TEXT"), not_null: true,..Default::default()},
 ])]
+#[case(" create table if not exists\n Test \n{\nId FLOAT\n { -LIKE \"%test%\" },}\n;\n",
+TableRef::from_str("Test", None, None),
+vec![
+ColumnDef {name: String::from("Id"), data_type: DataType::f_name("FLOAT"), rules: vec![
+ColumnRule::LikePattern(LikePattern  {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), pattern: "%test%".to_owned(), ..Default::default()})
+], ..Default::default()},
+])]
 fn test_create_table_success(
     #[case] input_value: &str,
     #[case] table_ref: TableRef,
@@ -80,8 +87,7 @@ fn test_create_table_success(
 
     for (i, column) in column_def.columns.iter().enumerate() {
         let desired_col: &ColumnDef = &cols[i];
-        assert_eq!(column.data_type, desired_col.data_type);
-        assert_eq!(column.name, desired_col.name);
+        assert_eq!(column, desired_col);
     }
 }
 
@@ -182,21 +188,35 @@ fn test_column_def_failure(#[case] input_value: &str) {
     data_type: DataType::f_name_1_size("VACHAR", 20),
     not_null: false,
     primary_key: false,
-    rules: vec![ColumnRule::RegexPattern {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), pattern: "^(?=(?:\\D*\\d){10}(?:(?:\\D*\\d){3})?$)[\\d-]+$".to_owned()}]
+    rules: vec![ColumnRule::RegexPattern(RegexPattern {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), pattern: "^(?=(?:\\D*\\d){10}(?:(?:\\D*\\d){3})?$)[\\d-]+$".to_owned(), ..Default::default()})]
 })]
 #[case("ISBN VACHAR(20) { -LIKE \"%test%\" }", ColumnDef {
     name: String::from("ISBN"),
     data_type: DataType::f_name_1_size("VACHAR", 20),
     not_null: false,
     primary_key: false,
-    rules: vec![ColumnRule::LikePattern {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), pattern: "%test%".to_owned()}]
+    rules: vec![ColumnRule::LikePattern(LikePattern  {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), pattern: "%test%".to_owned(), ..Default::default()})]
 })]
 #[case("ISBN VACHAR(20) { -CONTAINS \"test\" }", ColumnDef {
     name: String::from("ISBN"),
     data_type: DataType::f_name_1_size("VACHAR", 20),
     not_null: false,
     primary_key: false,
-    rules: vec![ColumnRule::ContainsValue {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), value: "test".to_owned()}]
+    rules: vec![ColumnRule::ContainsValue(ContainsValue  {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), value: "test".to_owned(), ..Default::default()})]
+})]
+#[case("ISBN VACHAR(20) { -CONTAINS \"test\" 0.01 }", ColumnDef {
+    name: String::from("ISBN"),
+    data_type: DataType::f_name_1_size("VACHAR", 20),
+    not_null: false,
+    primary_key: false,
+    rules: vec![ColumnRule::ContainsValue(ContainsValue  {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), threshold: 0.01, value: "test".to_owned(), ..Default::default()})]
+})]
+#[case("ISBN VACHAR(20) { -CONTAINS \"test\" 1. }", ColumnDef {
+name: String::from("ISBN"),
+data_type: DataType::f_name_1_size("VACHAR", 20),
+not_null: false,
+primary_key: false,
+rules: vec![ColumnRule::ContainsValue(ContainsValue  {name: String::new(), rule_ext_config: RuleExtConfig::new_empty(), value: "test".to_owned(), ..Default::default()})]
 })]
 fn test_column_with_rule_expr_success(
     #[case] input_value: &str,

@@ -8,7 +8,10 @@ edition = "2021"
 lalrpop = "0.20.2"
 
 [dependencies]
+const_format = "0.2.32"
 lalrpop-util = { version = "0.20.2", features = ["lexer", "unicode"] }
 rstest = "0.19.0"
+tera = "1"
+serde = { version = "1.0.201", features = ["derive"] }
 
 
