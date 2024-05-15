@@ -30,7 +30,7 @@ impl LikePattern {
             name: name.unwrap_or_default(),
             pattern,
             rule_ext_config: rule_ext_config.unwrap_or_default(),
-            threshold: threshold.unwrap_or_else(|| 1.0),
+            threshold: threshold.unwrap_or(1.0),
         }
     }
 }
@@ -65,7 +65,7 @@ impl RegexPattern {
             name: name.unwrap_or_default(),
             pattern,
             rule_ext_config: rule_ext_config.unwrap_or_default(),
-            threshold: threshold.unwrap_or_else(|| 1.0),
+            threshold: threshold.unwrap_or(1.0),
         }
     }
 }
@@ -100,7 +100,7 @@ impl ContainsValue {
             name: name.unwrap_or_default(),
             value,
             rule_ext_config: rule_ext_config.unwrap_or_default(),
-            threshold: threshold.unwrap_or_else(|| 1.0),
+            threshold: threshold.unwrap_or(1.0),
         }
     }
 }
