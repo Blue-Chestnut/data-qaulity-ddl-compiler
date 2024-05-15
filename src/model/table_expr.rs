@@ -1,5 +1,5 @@
 use crate::model::column_rule::ColumnRule;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
 pub struct TableDef {
@@ -40,6 +40,16 @@ impl FromStr for TableRef {
     }
 }
 
+impl Display for TableRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match &self.schema_name {
+            Some(schema_name) => format!("{}.{}", schema_name, self.table_name),
+            None => self.table_name.clone(),
+        };
+        write!(f, "{}", str)
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct ColumnDef {
     pub name: String,
@@ -47,13 +57,6 @@ pub struct ColumnDef {
     pub not_null: bool,
     pub primary_key: bool,
     pub rules: Vec<ColumnRule>,
-}
-
-impl ColumnDef {
-    pub fn add_rules(&mut self, rules: Vec<ColumnRule>) -> &mut Self {
-        self.rules.extend(rules);
-        self
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Default)]

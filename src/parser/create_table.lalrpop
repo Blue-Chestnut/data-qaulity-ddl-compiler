@@ -1,6 +1,5 @@
 use crate::model::table_expr::{TableDef, ColumnDef, DataType, TableRef};
-use crate::model::column_rule::ColumnRule;
-use crate::model::rule_ext_config::{RuleExtConfig};
+use crate::model::column_rule::{ColumnRule, ContainsValue, LikePattern, RegexPattern};
 
 grammar;
 
@@ -33,9 +32,9 @@ pub ColumnDefExpr: ColumnDef = {
 };
 
 pub ColumnRuleExpr: ColumnRule = {
-    r"-REGEX" <p:Text> => ColumnRule::RegexPattern {name: String::new(), pattern: p, rule_ext_config: RuleExtConfig::new_empty()},
-    r"-LIKE" <p:Text> => ColumnRule::LikePattern {name: String::new(), pattern: p, rule_ext_config: RuleExtConfig::new_empty()},
-    r"-CONTAINS" <p:Text> => ColumnRule::ContainsValue {name: String::new(), value: p, rule_ext_config: RuleExtConfig::new_empty()},
+    r"-REGEX" <p:Text> <t:DecimalPercent?> => ColumnRule::RegexPattern(RegexPattern::new(None, p, None, t)),
+    r"-LIKE" <p:Text> <t:DecimalPercent?> => ColumnRule::LikePattern(LikePattern::new(None, p, None, t)),
+    r"-CONTAINS" <p:Text> <t:DecimalPercent?> => ColumnRule::ContainsValue(ContainsValue::new(None, p, None, t)),
 };
 
 pub CreateTableString: bool = {
@@ -62,3 +61,4 @@ Comma<T>: Vec<T> = {
 uNumber: u32 = <s:r"[1-9][0-9]*"> => s.to_owned().parse::<u32>().unwrap();
 Identifier: String = <s:r"[a-zA-Z_][a-zA-Z0-9\-_]*"> => s.to_owned();
 Text: String = <s:r#"('[^['"]]+')|("[^['"]]+")"#> => s.to_owned()[1..(s.len()-1)].to_string();
+DecimalPercent: f32 = <s:r"(1\.(0*)?)|(0\.[0-9]*)"> => s.parse::<f32>().unwrap();

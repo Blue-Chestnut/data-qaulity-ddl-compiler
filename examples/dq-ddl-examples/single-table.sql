@@ -7,8 +7,11 @@ CREATE TABLE IF NOT EXISTS Inventory.Books {
     Price DECIMAL(10, 2) CONSTRAINT price_positive CHECK (Quantity >= 0),
     Quantity INT NOT NULL CONSTRAINT qty_positive CHECK (Quantity >= 0),
     ISBN VARCHAR(20) NOT NULL {
-        REGEX '^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$'
+        -REGEX '^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$' 0.99,
     },
+    {
+        -ARITHMETIC Price3 > Quantity,
+    }
 }
 
 
