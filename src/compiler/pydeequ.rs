@@ -164,6 +164,7 @@ pub fn compile_column_level_checks(columns: Vec<ColumnDef>, table: &TableDef) ->
 
     let column_level_checks: Vec<ColumnLevelCheck> = columns
         .iter()
+        .filter(|column| !column.rules.is_empty())
         .map(|column| ColumnLevelCheck::new(column.clone(), table))
         .collect();
 
@@ -220,6 +221,13 @@ mod tests {
                             ..Default::default()
                         }),
                     ],
+                },
+                ColumnDef {
+                    name: "Test".to_string(),
+                    data_type: DataType::f_name("FLOAT"),
+                    not_null: false,
+                    primary_key: false,
+                    rules: vec![],
                 },
             ],
         });

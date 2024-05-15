@@ -24,5 +24,4 @@ pub fn main() -> std::io::Result<()> {
     } else {
         Ok(())
     }
-    // println!("{:?}", parsed_result.);
 }
