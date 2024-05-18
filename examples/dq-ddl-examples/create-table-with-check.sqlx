@@ -1,0 +1,7 @@
+Create table if not exists Test {
+    Id FLOAT {
+        -LIKE "%test%",
+        -REGEX "[0-9]*test[0-9]*",
+        -CONTAINS "test" },
+    Price FLOAT
+};

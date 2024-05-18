@@ -1,5 +1,5 @@
 use crate::model::table_expr::{TableDef, ColumnDef, DataType, TableRef};
-use crate::model::column_rule::{ColumnRule, ContainsValue, LikePattern, RegexPattern};
+use crate::model::column_rule::{ColumnRule, ContainsValue, LikePattern, RegexPattern, NotEmpty};
 
 grammar;
 
@@ -24,17 +24,16 @@ pub ColumnWithRulesExpr: ColumnDef = {
 };
 
 pub ColumnDefExpr: ColumnDef = {
-    <n:Identifier> <d:DataTypeExpr> => ColumnDef {name: n, data_type: d, ..Default::default()},
-    <n:Identifier> <d:DataTypeExpr> r"(?i)NOT NULL" => ColumnDef {name: n, data_type: d, not_null: true,
-            ..Default::default()},
-    <n:Identifier> <d:DataTypeExpr> r"(?i)PRIMARY KEY" => ColumnDef {name: n, data_type: d, not_null: true,
-            primary_key: true, ..Default::default()},
+    <n:Identifier> <d:DataTypeExpr> => ColumnDef::new(n, d, false, false),
+    <n:Identifier> <d:DataTypeExpr> r"(?i)NOT NULL" => ColumnDef::new(n, d, true, false),
+    <n:Identifier> <d:DataTypeExpr> r"(?i)PRIMARY KEY" => ColumnDef::new(n, d, true, true),
 };
 
 pub ColumnRuleExpr: ColumnRule = {
     r"-REGEX" <p:Text> <t:DecimalPercent?> => ColumnRule::RegexPattern(RegexPattern::new(None, p, None, t)),
     r"-LIKE" <p:Text> <t:DecimalPercent?> => ColumnRule::LikePattern(LikePattern::new(None, p, None, t)),
     r"-CONTAINS" <p:Text> <t:DecimalPercent?> => ColumnRule::ContainsValue(ContainsValue::new(None, p, None, t)),
+    r"-NOT_EMPTY" <t:DecimalPercent?> => ColumnRule::NotEmpty(NotEmpty::new(None, None, t)),
 };
 
 pub CreateTableString: bool = {
@@ -45,7 +44,7 @@ pub CreateTableString: bool = {
 pub DataTypeExpr: DataType = {
     <n:Identifier> => DataType {name: n, size: None},
     <n:Identifier> "(" <i:uNumber> ")" => DataType {name: n, size: Some([Some(i), None])},
-    <n:Identifier> "(" <i1:uNumber> "," <i2:uNumber> ")" => DataType {name: n, size: Some([Some(i1), Some(i2)])},
+    <n:Identifier> "(" <i1:uNumber> "," <i2:uNumber> ")" => DataType::new( n.as_str(), Some(i1), Some(i2)),
 };
 
 Comma<T>: Vec<T> = {
