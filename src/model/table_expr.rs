@@ -16,6 +16,7 @@ pub struct TableRef {
 }
 
 impl TableRef {
+    #[cfg(test)]
     pub fn new(table_name: &str, schema_name: Option<&str>, alias: Option<&str>) -> Self {
         Self {
             table_name: String::from(table_name),
@@ -88,12 +89,9 @@ pub struct DataType {
 impl DataType {
 
     pub fn new(name: &str, size1: Option<u32>, size2: Option<u32>) -> Self {
-        let size: Option<[Option<u32>; 2]>;
+        let mut size: Option<[Option<u32>; 2]> = None;
 
-        if size1.is_none() && size2.is_none() {
-            size = None;
-        }
-        else {
+        if size1.is_some() {
             size = Some([size1, size2]);
         }
 

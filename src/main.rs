@@ -60,7 +60,7 @@ pub fn main() {
 
     let compiled: String = match args.target {
         CompilationTarget::PyDeequ => pydeequ::compile(table_def),
-        CompilationTarget::DQDL => dqdl::compile(table_def),
+        CompilationTarget::Dqdl => dqdl::compile(table_def),
         _ => unimplemented!("Cannot compile to target: {:?}", args.target),
     };
 
