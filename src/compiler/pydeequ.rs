@@ -92,7 +92,7 @@ pub mod pydeequ_rule {
                 table_name,
             }
             .compile(),
-            // _ => unimplemented!("Pydeequ has no implementation of rule: {}", column_rule)
+            _ => unimplemented!("Pydeequ has no implementation of rule: {:?}", column_rule),
         }
     }
 
@@ -175,7 +175,7 @@ pub fn compile_column_level_checks(columns: Vec<ColumnDef>, table: &TableDef) ->
         .replace('\r', "")
 }
 
-pub fn compile(table: Box<TableDef>) -> String {
+pub fn compile(table: TableDef) -> String {
     compile_column_level_checks(table.columns.clone(), &table)
 }
 
@@ -187,12 +187,12 @@ mod tests {
 
     #[test]
     pub fn compile_test() {
-        let table = Box::new(TableDef {
-            table_ref: TableRef::from_str("Test", None, None),
+        let table = TableDef {
+            table_ref: TableRef::new("Test", None, None),
             columns: vec![
                 ColumnDef {
                     name: "Id".to_string(),
-                    data_type: DataType::f_name("FLOAT"),
+                    data_type: DataType::new("FLOAT", None, None),
                     not_null: false,
                     primary_key: false,
                     rules: vec![
@@ -208,7 +208,7 @@ mod tests {
                 },
                 ColumnDef {
                     name: "Price".to_string(),
-                    data_type: DataType::f_name("FLOAT"),
+                    data_type: DataType::new("FLOAT", None, None),
                     not_null: false,
                     primary_key: false,
                     rules: vec![
@@ -224,13 +224,13 @@ mod tests {
                 },
                 ColumnDef {
                     name: "Test".to_string(),
-                    data_type: DataType::f_name("FLOAT"),
+                    data_type: DataType::new("FLOAT", None, None),
                     not_null: false,
                     primary_key: false,
                     rules: vec![],
                 },
             ],
-        });
+        };
 
         let compiled = crate::compiler::pydeequ::compile(table);
         assert_eq!(compiled, PYTHON_PYDEEQU_RESULT_1);

@@ -1,4 +1,4 @@
-use crate::model::column_rule::ColumnRule;
+use crate::model::column_rule::{ColumnRule, NonNull, PrimaryKey};
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
@@ -16,7 +16,8 @@ pub struct TableRef {
 }
 
 impl TableRef {
-    pub fn from_str(table_name: &str, schema_name: Option<&str>, alias: Option<&str>) -> Self {
+    #[cfg(test)]
+    pub fn new(table_name: &str, schema_name: Option<&str>, alias: Option<&str>) -> Self {
         Self {
             table_name: String::from(table_name),
             schema_name: schema_name.map(String::from),
@@ -59,6 +60,26 @@ pub struct ColumnDef {
     pub rules: Vec<ColumnRule>,
 }
 
+impl ColumnDef {
+    pub fn new(name: String, data_type: DataType, not_null: bool, primary_key: bool) -> Self {
+        let mut rules = Vec::new();
+        if not_null {
+            rules.push(ColumnRule::NonNull(NonNull::new(None, None, None)));
+        }
+        if primary_key {
+            rules.push(ColumnRule::PrimaryKey(PrimaryKey::new(None, None)));
+        }
+
+        Self {
+            name,
+            data_type,
+            not_null,
+            primary_key,
+            rules,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct DataType {
     pub name: String,
@@ -66,17 +87,16 @@ pub struct DataType {
 }
 
 impl DataType {
-    pub fn f_name(name: &str) -> Self {
-        Self {
-            name: String::from(name),
-            size: None,
-        }
-    }
+    pub fn new(name: &str, size1: Option<u32>, size2: Option<u32>) -> Self {
+        let mut size: Option<[Option<u32>; 2]> = None;
 
-    pub fn f_name_1_size(name: &str, size1: u32) -> Self {
+        if size1.is_some() {
+            size = Some([size1, size2]);
+        }
+
         Self {
-            name: String::from(name),
-            size: Some([Some(size1), None]),
+            name: name.to_owned(),
+            size,
         }
     }
 }
