@@ -114,9 +114,27 @@ fn test_create_table_failure(#[case] input_value: &str) {
 #[case("Id  INT ", "Id", DataType::new("INT", None, None), false, false)]
 #[case(" Id INT", "Id", DataType::new("INT", None, None), false, false)]
 #[case(" Id33 INT", "Id33", DataType::new("INT", None, None), false, false)]
-#[case(" Id33 INT PRIMARY KEY", "Id33", DataType::new("INT", None, None), true, true)]
-#[case(" Id33 INT primaRY KeY", "Id33", DataType::new("INT", None, None), true, true)]
-#[case(" Id33 TEXT NOT NULL", "Id33", DataType::new("TEXT", None, None), true, false)]
+#[case(
+    " Id33 INT PRIMARY KEY",
+    "Id33",
+    DataType::new("INT", None, None),
+    true,
+    true
+)]
+#[case(
+    " Id33 INT primaRY KeY",
+    "Id33",
+    DataType::new("INT", None, None),
+    true,
+    true
+)]
+#[case(
+    " Id33 TEXT NOT NULL",
+    "Id33",
+    DataType::new("TEXT", None, None),
+    true,
+    false
+)]
 #[case(
     "_Id-3_3 TEXT NOT NULL",
     "_Id-3_3",

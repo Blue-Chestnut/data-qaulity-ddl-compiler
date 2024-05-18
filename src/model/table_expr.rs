@@ -87,7 +87,6 @@ pub struct DataType {
 }
 
 impl DataType {
-
     pub fn new(name: &str, size1: Option<u32>, size2: Option<u32>) -> Self {
         let mut size: Option<[Option<u32>; 2]> = None;
 
