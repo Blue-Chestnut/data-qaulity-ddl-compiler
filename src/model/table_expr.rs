@@ -1,6 +1,9 @@
 use crate::model::column_rule::{ColumnRule, NonNull, PrimaryKey};
+use lalrpop_util::lalrpop_mod;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
+
+lalrpop_mod!(pub data_class, "/model/data_class.rs");
 
 pub struct TableDef {
     pub table_ref: TableRef,
@@ -82,21 +85,72 @@ impl ColumnDef {
 
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct DataType {
-    pub name: String,
+    pub class: DataClass,
     pub size: Option<[Option<u32>; 2]>,
 }
 
 impl DataType {
     pub fn new(name: &str, size1: Option<u32>, size2: Option<u32>) -> Self {
-        let mut size: Option<[Option<u32>; 2]> = None;
-
+        if size1.is_some() && size2.is_some() {
+            return DataType::from_str(
+                format!("{} ({}, {})", name, size1.unwrap(), size2.unwrap()).as_str(),
+            )
+            .unwrap();
+        }
         if size1.is_some() {
-            size = Some([size1, size2]);
+            return DataType::from_str(format!("{} ({})", name, size1.unwrap()).as_str()).unwrap();
         }
-
-        Self {
-            name: name.to_owned(),
-            size,
-        }
+        DataType::from_str(name).unwrap()
     }
+}
+
+impl FromStr for DataType {
+    type Err = ();
+
+    fn from_str(name: &str) -> Result<Self, ()> {
+        Ok(data_class::DataTypeExprParser::new().parse(name).unwrap())
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Default)]
+pub enum DataClass {
+    // Unknown,
+    #[default]
+    Unknown,
+    // Boolean Types
+    Bit,
+    Bool,
+    // String Types
+    Char,
+    VarChar,
+    Binary,
+    VarBinary,
+    TinyBlob,
+    TinyText,
+    Text,
+    Blob,
+    MediumText,
+    MediumBlob,
+    LongText,
+    LongBlob,
+    // Enum,
+    // Set,
+    // Numeric Types
+    TinyInt,
+    SmallInt,
+    MediumInt,
+    Int,
+    Integer,
+    BigInt,
+    Float,
+    Double,
+    DoublePrecision,
+    Decimal,
+    Dec,
+    // Dates
+    Date,
+    Time,
+    DateTime,
+    Timestamp,
+    Year,
 }
