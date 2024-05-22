@@ -17,8 +17,8 @@ pub TableNameExpr: TableRef = {
 
 pub ColumnWithRulesExpr: ColumnDef = {
     #[precedence(level="0")]
-    <c:ColumnDefExpr> "{" <rules:Comma<ColumnRuleExpr>> "}" => ColumnDef {name: c.name, data_type: c.data_type,
-            not_null: c.not_null, primary_key: c.primary_key, rules},
+    <c:ColumnDefExpr> "{" <rules:Comma<ColumnRuleExpr>> "}" => ColumnDef::new_with_rules(c.name, c.data_type,
+            c.not_null, c.primary_key, rules),
     #[precedence(level="1")]
     <c:ColumnDefExpr> => c
 };

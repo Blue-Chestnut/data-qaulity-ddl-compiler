@@ -1,4 +1,5 @@
-use crate::model::table_expr::{DataClass, DataType};
+use crate::model::table_expr::DataType;
+use crate::model::data_class::DataClass;
 
 grammar;
 

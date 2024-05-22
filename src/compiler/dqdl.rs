@@ -33,6 +33,12 @@ pub fn compile_column_rule(
         }
         ColumnRule::NonNull(_) => {
             format!("IsComplete \"{}\"", column_name)
+        }
+        ColumnRule::IsType(rule) => {
+            format!(
+                "ColumnDataType \"{}\" = \"{}\"",
+                column_name, rule.data_type.class
+            )
         } // _ => unimplemented!("DQDL has no implementation of rule: {:?}", column_rule)
     }
 }
@@ -56,7 +62,7 @@ pub fn compile(table_def: TableDef) -> String {
 #[cfg(test)]
 mod tests {
     use crate::model::column_rule::{
-        ColumnRule, ContainsValue, LikePattern, NonNull, NotEmpty, PrimaryKey, RegexPattern,
+        ColumnRule, ContainsValue, IsType, LikePattern, NonNull, NotEmpty, PrimaryKey, RegexPattern,
     };
     use crate::model::table_expr::{ColumnDef, DataType, TableDef, TableRef};
     use rstest::rstest;
@@ -69,6 +75,12 @@ mod tests {
         "Test",
         "Id",
         "IsPrimaryKey \"Id\""
+    )]
+    #[case(
+        ColumnRule::IsType(IsType::new(None, DataType::new("Int", Some(3), None), None)),
+        "Test",
+        "Id",
+        "ColumnDataType \"Id\" = \"Int\""
     )]
     #[case(
         ColumnRule::NonNull(NonNull::new(None, None, None)),
@@ -99,10 +111,10 @@ mod tests {
     #[rstest]
     #[case(TableDef {table_ref: TableRef::new("Test", None, None), columns: vec![]}, "")]
     #[case(TableDef {table_ref: TableRef::new("Test", None, None), columns: vec![
-        ColumnDef::new("Id".to_owned(), DataType::new("INT", None, None), false, false)
-    ]}, "")]
+        ColumnDef::new("Id".to_owned(), DataType::new("INT", Some(3), None), false, false)
+    ]}, "ColumnDataType \"Id\" = \"Int\",\n")]
     #[case(TableDef {table_ref: TableRef::new("Test", None, None), columns: vec![
-        ColumnDef {name: "Id".to_owned(), data_type: DataType::new("INT", None, None), not_null: false, primary_key: false, rules: vec![
+        ColumnDef {name: "Id".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: false, primary_key: false, rules: vec![
             ColumnRule::PrimaryKey(PrimaryKey::new(None, None)),
             ColumnRule::NonNull(NonNull::new(None, None, None)),
             ColumnRule::NotEmpty(NotEmpty::new(None, None, None)),

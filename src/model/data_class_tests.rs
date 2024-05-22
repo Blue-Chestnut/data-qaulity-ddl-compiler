@@ -1,10 +1,11 @@
 #![cfg(test)]
 
-use crate::model::table_expr::{DataClass, DataType};
+use crate::model::data_class::DataClass;
+use crate::model::table_expr::DataType;
 use lalrpop_util::lalrpop_mod;
 use rstest::rstest;
 
-lalrpop_mod!(pub data_class, "/model/data_class.rs");
+lalrpop_mod!(pub data_class, "/model/data_class_parsing.rs");
 
 #[rstest]
 #[case("Tinyblob", DataClass::TinyBlob)]

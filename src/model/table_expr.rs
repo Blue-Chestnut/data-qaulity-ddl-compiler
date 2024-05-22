@@ -1,4 +1,5 @@
-use crate::model::column_rule::{ColumnRule, NonNull, PrimaryKey};
+use crate::model::column_rule::{ColumnRule, IsType, NonNull, PrimaryKey};
+use crate::model::data_class::DataClass;
 use lalrpop_util::lalrpop_mod;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
@@ -73,6 +74,14 @@ impl ColumnDef {
             rules.push(ColumnRule::PrimaryKey(PrimaryKey::new(None, None)));
         }
 
+        if !data_type.class.is_date_like() {
+            rules.push(ColumnRule::IsType(IsType::new(
+                None,
+                data_type.clone(),
+                None,
+            )))
+        }
+
         Self {
             name,
             data_type,
@@ -80,6 +89,18 @@ impl ColumnDef {
             primary_key,
             rules,
         }
+    }
+
+    pub fn new_with_rules(
+        name: String,
+        data_type: DataType,
+        not_null: bool,
+        primary_key: bool,
+        rules: Vec<ColumnRule>,
+    ) -> Self {
+        let mut column = Self::new(name, data_type, not_null, primary_key);
+        column.rules.extend(rules);
+        column
     }
 }
 
@@ -110,47 +131,4 @@ impl FromStr for DataType {
     fn from_str(name: &str) -> Result<Self, ()> {
         Ok(data_class::DataTypeExprParser::new().parse(name).unwrap())
     }
-}
-
-#[derive(Clone, Debug, PartialEq, Default)]
-pub enum DataClass {
-    // Unknown,
-    #[default]
-    Unknown,
-    // Boolean Types
-    Bit,
-    Bool,
-    // String Types
-    Char,
-    VarChar,
-    Binary,
-    VarBinary,
-    TinyBlob,
-    TinyText,
-    Text,
-    Blob,
-    MediumText,
-    MediumBlob,
-    LongText,
-    LongBlob,
-    // Enum,
-    // Set,
-    // Numeric Types
-    TinyInt,
-    SmallInt,
-    MediumInt,
-    Int,
-    Integer,
-    BigInt,
-    Float,
-    Double,
-    DoublePrecision,
-    Decimal,
-    Dec,
-    // Dates
-    Date,
-    Time,
-    DateTime,
-    Timestamp,
-    Year,
 }

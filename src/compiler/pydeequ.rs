@@ -5,10 +5,45 @@ use crate::compiler::pydeequ::pydeequ_rule::compile_column_rule;
 use crate::model::table_expr::{ColumnDef, TableDef};
 
 pub mod pydeequ_rule {
-    use crate::model::column_rule::{ColumnRule, ContainsValue, LikePattern, RegexPattern};
+    use crate::model::column_rule::{ColumnRule, ContainsValue, IsType, LikePattern, RegexPattern};
 
     pub trait Compiling {
         fn compile(&self) -> String;
+    }
+
+    pub struct HasDataType {
+        rule: IsType,
+        column_name: String,
+    }
+
+    impl Compiling for HasDataType {
+        fn compile(&self) -> String {
+            if self.rule.data_type.class.is_string_like() {
+                return format!(
+                    ".hasDataType(\"{}\", ConstrainableDataTypes.String, lambda x: x == 1)",
+                    &self.column_name
+                );
+            } else if self.rule.data_type.class.is_fraction_like() {
+                return format!(
+                    ".hasDataType(\"{}\", ConstrainableDataTypes.Fractional, lambda x: x == 1)",
+                    &self.column_name
+                );
+            } else if self.rule.data_type.class.is_numeric_like() {
+                return format!(
+                    ".hasDataType(\"{}\", ConstrainableDataTypes.Numeric, lambda x: x == 1)",
+                    &self.column_name
+                );
+            } else if self.rule.data_type.class.is_boolean_like() {
+                return format!(
+                    ".hasDataType(\"{}\", ConstrainableDataTypes.Boolean, lambda x: x == 1)",
+                    &self.column_name
+                );
+            }
+            panic!(
+                "Cannot compile HasDataType for column {} with type {:?}",
+                self.column_name, self.rule.data_type
+            )
+        }
     }
 
     pub struct HasPattern {
@@ -26,6 +61,42 @@ pub mod pydeequ_rule {
             format!(
                 ".hasPattern(\"{}\", r\"{}\", lambda x:x==1, \"{}\")",
                 &self.column_name, &self.rule.pattern, constraint_name
+            )
+        }
+    }
+
+    pub struct Completeness {
+        column_name: String,
+        table_name: String,
+    }
+
+    impl Compiling for Completeness {
+        fn compile(&self) -> String {
+            let constraint_name = format!(
+                "check_like_pattern_{}_{}",
+                &self.table_name, &self.column_name
+            );
+            format!(
+                ".isComplete(\"{}\", \"{}\")",
+                &self.column_name, constraint_name
+            )
+        }
+    }
+
+    pub struct Uniqueness {
+        column_name: String,
+        table_name: String,
+    }
+
+    impl Compiling for Uniqueness {
+        fn compile(&self) -> String {
+            let constraint_name = format!(
+                "check_like_pattern_{}_{}",
+                &self.table_name, &self.column_name
+            );
+            format!(
+                ".isComplete(\"{}\", \"{}\")",
+                &self.column_name, constraint_name
             )
         }
     }
@@ -90,6 +161,23 @@ pub mod pydeequ_rule {
                 rule,
                 column_name,
                 table_name,
+            }
+            .compile(),
+            ColumnRule::IsType(rule) => HasDataType {
+                rule,
+                column_name,
+            }
+            .compile(),
+            ColumnRule::PrimaryKey(_) => {
+                Uniqueness {
+                    column_name: column_name.clone(),
+                    table_name: table_name.clone(),
+                }
+                .compile()
+            }
+            ColumnRule::NonNull(_) => Completeness {
+                column_name: column_name.clone(),
+                table_name: table_name.clone(),
             }
             .compile(),
             _ => unimplemented!("Pydeequ has no implementation of rule: {:?}", column_rule),
@@ -182,7 +270,9 @@ pub fn compile(table: TableDef) -> String {
 #[cfg(test)]
 mod tests {
     use crate::compiler::test_strings::pydeequ::PYTHON_PYDEEQU_RESULT_1;
-    use crate::model::column_rule::{ColumnRule, ContainsValue, LikePattern, RegexPattern};
+    use crate::model::column_rule::{
+        ColumnRule, ContainsValue, IsType, LikePattern, NonNull, PrimaryKey, RegexPattern,
+    };
     use crate::model::table_expr::{ColumnDef, DataType, TableDef, TableRef};
 
     #[test]
@@ -192,10 +282,23 @@ mod tests {
             columns: vec![
                 ColumnDef {
                     name: "Id".to_string(),
-                    data_type: DataType::new("FLOAT", None, None),
-                    not_null: false,
-                    primary_key: false,
+                    data_type: DataType::new("VarChar", Some(3), None),
+                    not_null: true,
+                    primary_key: true,
                     rules: vec![
+                        ColumnRule::NonNull(NonNull {
+                            name: "".to_string(),
+                            ..Default::default()
+                        }),
+                        ColumnRule::PrimaryKey(PrimaryKey {
+                            name: "".to_string(),
+                            ..Default::default()
+                        }),
+                        ColumnRule::IsType(IsType {
+                            name: "".to_string(),
+                            data_type: DataType::new("VarChar", Some(10), None),
+                            ..Default::default()
+                        }),
                         ColumnRule::LikePattern(LikePattern {
                             pattern: "%test%".to_string(),
                             ..Default::default()
@@ -208,10 +311,15 @@ mod tests {
                 },
                 ColumnDef {
                     name: "Price".to_string(),
-                    data_type: DataType::new("FLOAT", None, None),
+                    data_type: DataType::new("VarChar", Some(10), None),
                     not_null: false,
                     primary_key: false,
                     rules: vec![
+                        ColumnRule::IsType(IsType {
+                            name: "".to_string(),
+                            data_type: DataType::new("VarChar", Some(10), None),
+                            ..Default::default()
+                        }),
                         ColumnRule::LikePattern(LikePattern {
                             pattern: "%test%".to_string(),
                             ..LikePattern::default()
@@ -224,7 +332,7 @@ mod tests {
                 },
                 ColumnDef {
                     name: "Test".to_string(),
-                    data_type: DataType::new("FLOAT", None, None),
+                    data_type: DataType::new("FLOAT", Some(3), None),
                     not_null: false,
                     primary_key: false,
                     rules: vec![],
