@@ -163,18 +163,12 @@ pub mod pydeequ_rule {
                 table_name,
             }
             .compile(),
-            ColumnRule::IsType(rule) => HasDataType {
-                rule,
-                column_name,
+            ColumnRule::IsType(rule) => HasDataType { rule, column_name }.compile(),
+            ColumnRule::PrimaryKey(_) => Uniqueness {
+                column_name: column_name.clone(),
+                table_name: table_name.clone(),
             }
             .compile(),
-            ColumnRule::PrimaryKey(_) => {
-                Uniqueness {
-                    column_name: column_name.clone(),
-                    table_name: table_name.clone(),
-                }
-                .compile()
-            }
             ColumnRule::NonNull(_) => Completeness {
                 column_name: column_name.clone(),
                 table_name: table_name.clone(),
