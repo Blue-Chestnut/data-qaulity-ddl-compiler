@@ -4,7 +4,7 @@ use lalrpop_util::lalrpop_mod;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
-lalrpop_mod!(pub data_class, "/model/data_class.rs");
+lalrpop_mod!(pub data_class, "/model/data_class_parsing.rs");
 
 pub struct TableDef {
     pub table_ref: TableRef,
