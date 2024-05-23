@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession, DataFrame
 from pydeequ import deequ_maven_coord, f2j_maven_coord
 from pyspark.sql.functions import lit
-from pydeequ.checks import Check, CheckLevel
+from pydeequ.checks import Check, CheckLevel, ConstrainableDataTypes
 from pydeequ.verification import VerificationSuite, VerificationResult
 
 {% for column_level_check in column_level_checks %}

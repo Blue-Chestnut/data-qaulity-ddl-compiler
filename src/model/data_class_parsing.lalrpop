@@ -1,0 +1,56 @@
+use crate::model::table_expr::DataType;
+use crate::model::data_class::DataClass;
+
+grammar;
+
+pub DataTypeExpr: DataType = {
+    <c:NoSizeDataClass> => DataType {class: c, size: None},
+    <c:OneSizeDataClass> "(" <i:uNumber> ")" => DataType {class: c, size: Some([Some(i), None])},
+    <c:TwoSizesDataClass> "(" <i1:uNumber> "," <i2:uNumber> ")" => DataType {class: c, size: Some([Some(i1), Some(i2)])},
+    <c:BothSizesDataClass> "(" <i:uNumber> ")" => DataType {class: c, size: Some([Some(i), None])},
+    <c:BothSizesDataClass> "(" <i1:uNumber> "," <i2:uNumber> ")" => DataType {class: c, size: Some([Some(i1), Some(i2)])},
+};
+
+pub AllDataClassExpr: DataClass = {
+    <c:NoSizeDataClass> => c,
+    <c:OneSizeDataClass> => c,
+    <c:TwoSizesDataClass> => c,
+    <c:BothSizesDataClass> => c
+};
+
+pub NoSizeDataClass: DataClass = {
+    r"(?i)Tinyblob" => DataClass::TinyBlob,
+    r"(?i)TinyText" => DataClass::TinyText,
+    r"(?i)Bool" => DataClass::Bool,
+    r"(?i)MediumText" => DataClass::MediumText,
+    r"(?i)MediumBlob" => DataClass::MediumBlob,
+    r"(?i)LongText" => DataClass::LongText,
+    r"(?i)LongBlob" => DataClass::LongBlob,
+};
+
+pub OneSizeDataClass: DataClass = {
+    r"(?i)Char" => DataClass::Char,
+    r"(?i)VarChar" => DataClass::VarChar,
+    r"(?i)Binary" => DataClass::Binary,
+    r"(?i)Int" => DataClass::Int,
+    r"(?i)Text" => DataClass::Text,
+    r"(?i)Bit" => DataClass::Bit,
+    r"(?i)VarBinary" => DataClass::VarBinary,
+    r"(?i)Blob" => DataClass::Blob,
+    r"(?i)TinyInt" => DataClass::TinyInt,
+    r"(?i)SmallInt" => DataClass::SmallInt,
+    r"(?i)MediumInt" => DataClass::MediumInt,
+    r"(?i)BigInt" => DataClass::BigInt,
+};
+
+pub TwoSizesDataClass: DataClass = {
+    r"(?i)Double" => DataClass::Double,
+    r"(?i)Decimal" => DataClass::Decimal,
+    r"(?i)DoublePrecision" => DataClass::DoublePrecision,
+};
+
+pub BothSizesDataClass: DataClass = {
+    r"(?i)Float" => DataClass::Float,
+}
+
+uNumber: u32 = <s:r"[1-9][0-9]*"> => s.to_owned().parse::<u32>().unwrap();

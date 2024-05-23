@@ -17,8 +17,8 @@ pub TableNameExpr: TableRef = {
 
 pub ColumnWithRulesExpr: ColumnDef = {
     #[precedence(level="0")]
-    <c:ColumnDefExpr> "{" <rules:Comma<ColumnRuleExpr>> "}" => ColumnDef {name: c.name, data_type: c.data_type,
-            not_null: c.not_null, primary_key: c.primary_key, rules},
+    <c:ColumnDefExpr> "{" <rules:Comma<ColumnRuleExpr>> "}" => ColumnDef::new_with_rules(c.name, c.data_type,
+            c.not_null, c.primary_key, rules),
     #[precedence(level="1")]
     <c:ColumnDefExpr> => c
 };
@@ -42,8 +42,8 @@ pub CreateTableString: bool = {
 };
 
 pub DataTypeExpr: DataType = {
-    <n:Identifier> => DataType {name: n, size: None},
-    <n:Identifier> "(" <i:uNumber> ")" => DataType {name: n, size: Some([Some(i), None])},
+    <n:Identifier> => DataType::new(n.as_str(), None, None),
+    <n:Identifier> "(" <i:uNumber> ")" => DataType::new( n.as_str(), Some(i), None),
     <n:Identifier> "(" <i1:uNumber> "," <i2:uNumber> ")" => DataType::new( n.as_str(), Some(i1), Some(i2)),
 };
 

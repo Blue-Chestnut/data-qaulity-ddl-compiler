@@ -1,6 +1,12 @@
 # data-qaulity-ddl-compiler
 A compiler for extending DDLs to include data quality rules.
 
+## Usage
+
+### CLI 
+
+`cargo run -- -t py-deequ -f "examples/dq-ddl-examples/create-table-with-check.sqlx" -o test.py`
+
 ## Language Definition
 
 ### Formal Grammar

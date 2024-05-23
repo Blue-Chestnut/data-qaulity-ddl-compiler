@@ -1,6 +1,10 @@
-use crate::model::column_rule::{ColumnRule, NonNull, PrimaryKey};
+use crate::model::column_rule::{ColumnRule, IsType, NonNull, PrimaryKey};
+use crate::model::data_class::DataClass;
+use lalrpop_util::lalrpop_mod;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
+
+lalrpop_mod!(pub data_class, "/model/data_class_parsing.rs");
 
 pub struct TableDef {
     pub table_ref: TableRef,
@@ -70,6 +74,14 @@ impl ColumnDef {
             rules.push(ColumnRule::PrimaryKey(PrimaryKey::new(None, None)));
         }
 
+        if !data_type.class.is_date_like() {
+            rules.push(ColumnRule::IsType(IsType::new(
+                None,
+                data_type.clone(),
+                None,
+            )))
+        }
+
         Self {
             name,
             data_type,
@@ -78,25 +90,45 @@ impl ColumnDef {
             rules,
         }
     }
+
+    pub fn new_with_rules(
+        name: String,
+        data_type: DataType,
+        not_null: bool,
+        primary_key: bool,
+        rules: Vec<ColumnRule>,
+    ) -> Self {
+        let mut column = Self::new(name, data_type, not_null, primary_key);
+        column.rules.extend(rules);
+        column
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct DataType {
-    pub name: String,
+    pub class: DataClass,
     pub size: Option<[Option<u32>; 2]>,
 }
 
 impl DataType {
     pub fn new(name: &str, size1: Option<u32>, size2: Option<u32>) -> Self {
-        let mut size: Option<[Option<u32>; 2]> = None;
-
+        if size1.is_some() && size2.is_some() {
+            return DataType::from_str(
+                format!("{} ({}, {})", name, size1.unwrap(), size2.unwrap()).as_str(),
+            )
+            .unwrap();
+        }
         if size1.is_some() {
-            size = Some([size1, size2]);
+            return DataType::from_str(format!("{} ({})", name, size1.unwrap()).as_str()).unwrap();
         }
+        DataType::from_str(name).unwrap()
+    }
+}
 
-        Self {
-            name: name.to_owned(),
-            size,
-        }
+impl FromStr for DataType {
+    type Err = ();
+
+    fn from_str(name: &str) -> Result<Self, ()> {
+        Ok(data_class::DataTypeExprParser::new().parse(name).unwrap())
     }
 }
