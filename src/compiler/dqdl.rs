@@ -25,7 +25,7 @@ pub fn compile_column_rule(
                 table_name, column_name, rule.value
             )
         }
-        ColumnRule::PrimaryKey(_) => {
+        ColumnRule::Uniqueness(_) => {
             format!("IsPrimaryKey \"{}\"", column_name)
         }
         ColumnRule::NotEmpty(_) => {
@@ -62,7 +62,7 @@ pub fn compile(table_def: TableDef) -> String {
 #[cfg(test)]
 mod tests {
     use crate::model::column_rule::{
-        ColumnRule, ContainsValue, IsType, LikePattern, NonNull, NotEmpty, PrimaryKey, RegexPattern,
+        ColumnRule, ContainsValue, IsType, LikePattern, NonNull, NotEmpty, RegexPattern, Uniqueness,
     };
     use crate::model::table_expr::{ColumnDef, DataType, TableDef, TableRef};
     use rstest::rstest;
@@ -71,7 +71,7 @@ mod tests {
 
     #[rstest]
     #[case(
-        ColumnRule::PrimaryKey(PrimaryKey::new(None, None)),
+        ColumnRule::Uniqueness(Uniqueness::new(None, None)),
         "Test",
         "Id",
         "IsPrimaryKey \"Id\""
@@ -115,7 +115,7 @@ mod tests {
     ]}, "ColumnDataType \"Id\" = \"Int\",\n")]
     #[case(TableDef {table_ref: TableRef::new("Test", None, None), columns: vec![
         ColumnDef {name: "Id".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: false, primary_key: false, rules: vec![
-            ColumnRule::PrimaryKey(PrimaryKey::new(None, None)),
+            ColumnRule::Uniqueness(Uniqueness::new(None, None)),
             ColumnRule::NonNull(NonNull::new(None, None, None)),
             ColumnRule::NotEmpty(NotEmpty::new(None, None, None)),
             ColumnRule::ContainsValue(ContainsValue::new(None, "test".to_owned(), None, None)),

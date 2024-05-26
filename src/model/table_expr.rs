@@ -1,4 +1,4 @@
-use crate::model::column_rule::{ColumnRule, IsType, NonNull, PrimaryKey};
+use crate::model::column_rule::{ColumnRule, IsType, NonNull, Uniqueness};
 use crate::model::data_class::DataClass;
 use lalrpop_util::lalrpop_mod;
 use std::fmt::{Debug, Display};
@@ -71,7 +71,7 @@ impl ColumnDef {
             rules.push(ColumnRule::NonNull(NonNull::new(None, None, None)));
         }
         if primary_key {
-            rules.push(ColumnRule::PrimaryKey(PrimaryKey::new(None, None)));
+            rules.push(ColumnRule::Uniqueness(Uniqueness::new(None, None)));
         }
 
         if !data_type.class.is_date_like() {
