@@ -218,7 +218,10 @@ pub mod pydeequ_rule {
         #[case(ColumnRule::ContainsValue(ContainsValue {name: "".to_owned(), value: "test".to_owned(), ..Default::default()}), "Test", "Id", ".hasPattern(\"Id\", r\"test\", lambda x: x >= 1, \"check_contains_value_Test_Id\")")]
         #[case(ColumnRule::Uniqueness(Uniqueness {name: "".to_owned(), ..Default::default()}), "Test", "Id", ".isUnique(\"Id\", \"check_uniqueness_Test_Id\")")]
         #[case(ColumnRule::NonNull(NonNull {name: "".to_owned(), ..Default::default()}), "Table", "Column", ".isComplete(\"Column\", \"check_completeness_Table_Column\")")]
-        #[case(ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("INT", Some(4), None), ..Default::default()}), "Test", "Price", ".hasDataType(\"Price\", ConstrainableDataTypes.Numeric, lambda x: x >= 1)")]
+        #[case(ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("INT", Some(4), None), ..Default::default()}), "Test", "Quantity", ".hasDataType(\"Quantity\", ConstrainableDataTypes.Numeric, lambda x: x >= 1)")]
+        #[case(ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("VarChar", Some(4), None), ..Default::default()}), "Test", "Description", ".hasDataType(\"Description\", ConstrainableDataTypes.String, lambda x: x >= 1)")]
+        #[case(ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("Float", Some(4), None), ..Default::default()}), "Test", "Price", ".hasDataType(\"Price\", ConstrainableDataTypes.Fractional, lambda x: x >= 1)")]
+        #[case(ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("Bool", None, None), ..Default::default()}), "Test", "Available", ".hasDataType(\"Available\", ConstrainableDataTypes.Boolean, lambda x: x >= 1)")]
         #[case(ColumnRule::NotEmpty(NotEmpty {name: "".to_owned(), ..Default::default()}), "Test", "Value", ".satisfies(\"length(Value) > 0\", \"check_not_empty_Test_Value\", lambda x: x >= 1)")]
         pub fn test_compile_column_rule(
             #[case] column_rule: ColumnRule,

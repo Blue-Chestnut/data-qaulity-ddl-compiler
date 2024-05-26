@@ -1,5 +1,5 @@
 use crate::model::table_expr::{TableDef, ColumnDef, DataType, TableRef};
-use crate::model::column_rule::{ColumnRule, ContainsValue, LikePattern, RegexPattern, NotEmpty};
+use crate::model::column_rule::{ColumnRule, ContainsValue, LikePattern, RegexPattern, NotEmpty, Uniqueness};
 
 grammar;
 
@@ -30,10 +30,11 @@ pub ColumnDefExpr: ColumnDef = {
 };
 
 pub ColumnRuleExpr: ColumnRule = {
-    r"-REGEX" <p:Text> <t:DecimalPercent?> => ColumnRule::RegexPattern(RegexPattern::new(None, p, None, t)),
-    r"-LIKE" <p:Text> <t:DecimalPercent?> => ColumnRule::LikePattern(LikePattern::new(None, p, None, t)),
-    r"-CONTAINS" <p:Text> <t:DecimalPercent?> => ColumnRule::ContainsValue(ContainsValue::new(None, p, None, t)),
-    r"-NOT_EMPTY" <t:DecimalPercent?> => ColumnRule::NotEmpty(NotEmpty::new(None, None, t)),
+    r"(?i)-REGEX" <p:Text> <t:DecimalPercent?> => ColumnRule::RegexPattern(RegexPattern::new(None, p, None, t)),
+    r"(?i)-LIKE" <p:Text> <t:DecimalPercent?> => ColumnRule::LikePattern(LikePattern::new(None, p, None, t)),
+    r"(?i)-CONTAINS" <p:Text> <t:DecimalPercent?> => ColumnRule::ContainsValue(ContainsValue::new(None, p, None, t)),
+    r"(?i)-NOT_EMPTY" <t:DecimalPercent?> => ColumnRule::NotEmpty(NotEmpty::new(None, None, t)),
+    r"(?i)-UNIQUENESS" => ColumnRule::Uniqueness(Uniqueness::new(None, None)),
 };
 
 pub CreateTableString: bool = {

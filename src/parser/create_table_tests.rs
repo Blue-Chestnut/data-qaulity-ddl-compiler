@@ -4,7 +4,7 @@ use lalrpop_util::lalrpop_mod;
 use rstest::rstest;
 
 use crate::model::column_rule::{
-    ColumnRule, ContainsValue, IsType, LikePattern, NonNull, RegexPattern, Uniqueness,
+    ColumnRule, ContainsValue, IsType, LikePattern, NonNull, NotEmpty, RegexPattern, Uniqueness,
 };
 use crate::model::data_class::DataClass;
 use crate::model::rule_ext_config::RuleExtConfig;
@@ -313,6 +313,26 @@ fn test_column_def_failure(#[case] input_value: &str) {
     ColumnRule::Uniqueness(Uniqueness::new(None, None)),
     ColumnRule::IsType(IsType {  name: "".to_owned(), data_type: DataType {
     class: DataClass::VarChar, size: Some([Some(20), None]) }, ..Default::default()}),]
+})]
+#[case("ISBN VARCHAR(20) { -uniqueness} ", ColumnDef {
+    name: String::from("ISBN"),
+    data_type: DataType::new("VARCHAR", Some(20), None),
+    not_null: false,
+    primary_key: false,
+    rules: vec![
+    ColumnRule::IsType(IsType {  name: "".to_owned(), data_type: DataType {
+    class: DataClass::VarChar, size: Some([Some(20), None]) }, ..Default::default()}),
+    ColumnRule::Uniqueness(Uniqueness::new(None, None)),]
+})]
+#[case("ISBN VARCHAR(20) { -not_empty} ", ColumnDef {
+    name: String::from("ISBN"),
+    data_type: DataType::new("VARCHAR", Some(20), None),
+    not_null: false,
+    primary_key: false,
+    rules: vec![
+    ColumnRule::IsType(IsType {  name: "".to_owned(), data_type: DataType {
+    class: DataClass::VarChar, size: Some([Some(20), None]) }, ..Default::default()}),
+    ColumnRule::NotEmpty(NotEmpty::new(None, None, None)),]
 })]
 fn test_column_with_rule_expr_success(
     #[case] input_value: &str,
