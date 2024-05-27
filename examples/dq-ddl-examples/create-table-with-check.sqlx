@@ -1,9 +1,9 @@
 Create table if not exists Test {
     Id Varchar(10) {
         -LIKE "%test%",
-        -REGEX "[0-9]*test[0-9]*",
+        -REGEX asdf"[0-9]*test[0-9]*",
         -CONTAINS "test" 0.9,
         -not_empty,
-        -unique}
+        -unique},
     Price FLOAT(3,8) PRIMARY KEY
 };
