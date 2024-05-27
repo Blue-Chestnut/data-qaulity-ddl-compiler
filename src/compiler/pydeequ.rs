@@ -5,7 +5,9 @@ use crate::compiler::pydeequ::pydeequ_rule::compile_column_rule;
 use crate::model::table_expr::{ColumnDef, TableDef};
 
 pub mod pydeequ_rule {
-    use crate::model::column_rule::{ColumnRule, ContainsValue, IsType, LikePattern, RegexPattern};
+    use crate::model::column_rule::{
+        ColumnRule, ContainsValue, IsType, LikePattern, NotEmpty, RegexPattern,
+    };
 
     pub trait Compiling {
         fn compile(&self) -> String;
@@ -20,22 +22,22 @@ pub mod pydeequ_rule {
         fn compile(&self) -> String {
             if self.rule.data_type.class.is_string_like() {
                 return format!(
-                    ".hasDataType(\"{}\", ConstrainableDataTypes.String, lambda x: x == 1)",
+                    ".hasDataType(\"{}\", ConstrainableDataTypes.String, lambda x: x >= 1)",
                     &self.column_name
                 );
             } else if self.rule.data_type.class.is_fraction_like() {
                 return format!(
-                    ".hasDataType(\"{}\", ConstrainableDataTypes.Fractional, lambda x: x == 1)",
+                    ".hasDataType(\"{}\", ConstrainableDataTypes.Fractional, lambda x: x >= 1)",
                     &self.column_name
                 );
             } else if self.rule.data_type.class.is_numeric_like() {
                 return format!(
-                    ".hasDataType(\"{}\", ConstrainableDataTypes.Numeric, lambda x: x == 1)",
+                    ".hasDataType(\"{}\", ConstrainableDataTypes.Numeric, lambda x: x >= 1)",
                     &self.column_name
                 );
             } else if self.rule.data_type.class.is_boolean_like() {
                 return format!(
-                    ".hasDataType(\"{}\", ConstrainableDataTypes.Boolean, lambda x: x == 1)",
+                    ".hasDataType(\"{}\", ConstrainableDataTypes.Boolean, lambda x: x >= 1)",
                     &self.column_name
                 );
             }
@@ -59,8 +61,8 @@ pub mod pydeequ_rule {
                 &self.table_name, &self.column_name
             );
             format!(
-                ".hasPattern(\"{}\", r\"{}\", lambda x:x==1, \"{}\")",
-                &self.column_name, &self.rule.pattern, constraint_name
+                ".hasPattern(\"{}\", r\"{}\", lambda x: x >= {}, \"{}\")",
+                &self.column_name, &self.rule.pattern, self.rule.threshold, constraint_name
             )
         }
     }
@@ -73,7 +75,7 @@ pub mod pydeequ_rule {
     impl Compiling for Completeness {
         fn compile(&self) -> String {
             let constraint_name = format!(
-                "check_like_pattern_{}_{}",
+                "check_completeness_{}_{}",
                 &self.table_name, &self.column_name
             );
             format!(
@@ -91,11 +93,11 @@ pub mod pydeequ_rule {
     impl Compiling for Uniqueness {
         fn compile(&self) -> String {
             let constraint_name = format!(
-                "check_like_pattern_{}_{}",
+                "check_uniqueness_{}_{}",
                 &self.table_name, &self.column_name
             );
             format!(
-                ".isComplete(\"{}\", \"{}\")",
+                ".isUnique(\"{}\", \"{}\")",
                 &self.column_name, constraint_name
             )
         }
@@ -114,8 +116,8 @@ pub mod pydeequ_rule {
                 &self.table_name, &self.column_name
             );
             format!(
-                ".satisfies(\"{} LIKE '{}'\", \"{}\", lambda x:x==1)",
-                &self.column_name, &self.rule.pattern, constraint_name
+                ".satisfies(\"{} LIKE '{}'\", \"{}\", lambda x: x >= {})",
+                &self.column_name, &self.rule.pattern, constraint_name, self.rule.threshold
             )
         }
     }
@@ -133,8 +135,25 @@ pub mod pydeequ_rule {
                 &self.table_name, &self.column_name
             );
             format!(
-                ".hasPattern(\"{}\", r\"{}\", lambda x:x==1, \"{}\")",
-                &self.column_name, &self.rule.value, constraint_name
+                ".hasPattern(\"{}\", r\"{}\", lambda x: x >= {}, \"{}\")",
+                &self.column_name, &self.rule.value, self.rule.threshold, constraint_name
+            )
+        }
+    }
+
+    pub struct PydeequNotEmpty {
+        rule: NotEmpty, // https://pydeequ.readthedocs.io/en/latest/pydeequ.html#pydeequ.checks.Check.hasPattern
+        column_name: String,
+        table_name: String,
+    }
+
+    impl Compiling for PydeequNotEmpty {
+        fn compile(&self) -> String {
+            let constraint_name =
+                format!("check_not_empty_{}_{}", &self.table_name, &self.column_name);
+            format!(
+                ".satisfies(\"length({}) > 0\", \"{}\", lambda x: x >= {})",
+                &self.column_name, constraint_name, self.rule.threshold
             )
         }
     }
@@ -164,7 +183,7 @@ pub mod pydeequ_rule {
             }
             .compile(),
             ColumnRule::IsType(rule) => HasDataType { rule, column_name }.compile(),
-            ColumnRule::PrimaryKey(_) => Uniqueness {
+            ColumnRule::Uniqueness(_) => Uniqueness {
                 column_name: column_name.clone(),
                 table_name: table_name.clone(),
             }
@@ -174,20 +193,36 @@ pub mod pydeequ_rule {
                 table_name: table_name.clone(),
             }
             .compile(),
-            _ => unimplemented!("Pydeequ has no implementation of rule: {:?}", column_rule),
+            ColumnRule::NotEmpty(rule) => PydeequNotEmpty {
+                column_name: column_name.clone(),
+                table_name: table_name.clone(),
+                rule,
+            }
+            .compile(), // _ => unimplemented!("Pydeequ has no implementation of rule: {:?}", column_rule),
         }
     }
 
     #[cfg(test)]
     pub mod test {
         use crate::compiler::pydeequ::pydeequ_rule::compile_column_rule;
-        use crate::model::column_rule::{ColumnRule, ContainsValue, LikePattern, RegexPattern};
+        use crate::model::column_rule::{
+            ColumnRule, ContainsValue, IsType, LikePattern, NonNull, NotEmpty, RegexPattern,
+            Uniqueness,
+        };
+        use crate::model::table_expr::DataType;
         use rstest::rstest;
 
         #[rstest]
-        #[case(ColumnRule::RegexPattern(RegexPattern {name: "".to_owned(), pattern: "^(?:\\D*\\d){10}$".to_owned(), ..Default::default()}), "Test", "Id", ".hasPattern(\"Id\", r\"^(?:\\D*\\d){10}$\", lambda x:x==1, \"check_has_pattern_Test_Id\")")]
-        #[case(ColumnRule::LikePattern(LikePattern {name: "".to_owned(), pattern: "%test%".to_owned(), ..Default::default()}), "Test", "Price", ".satisfies(\"Price LIKE '%test%'\", \"check_like_pattern_Test_Price\", lambda x:x==1)")]
-        #[case(ColumnRule::ContainsValue(ContainsValue {name: "".to_owned(), value: "test".to_owned(), ..Default::default()}), "Test", "Id", ".hasPattern(\"Id\", r\"test\", lambda x:x==1, \"check_contains_value_Test_Id\")")]
+        #[case(ColumnRule::RegexPattern(RegexPattern {name: "".to_owned(), pattern: "^(?:\\D*\\d){10}$".to_owned(), threshold: 0.5, ..Default::default()}), "Test", "Id", ".hasPattern(\"Id\", r\"^(?:\\D*\\d){10}$\", lambda x: x >= 0.5, \"check_has_pattern_Test_Id\")")]
+        #[case(ColumnRule::LikePattern(LikePattern {name: "".to_owned(), pattern: "%test%".to_owned(), ..Default::default()}), "Test", "Price", ".satisfies(\"Price LIKE '%test%'\", \"check_like_pattern_Test_Price\", lambda x: x >= 1)")]
+        #[case(ColumnRule::ContainsValue(ContainsValue {name: "".to_owned(), value: "test".to_owned(), ..Default::default()}), "Test", "Id", ".hasPattern(\"Id\", r\"test\", lambda x: x >= 1, \"check_contains_value_Test_Id\")")]
+        #[case(ColumnRule::Uniqueness(Uniqueness {name: "".to_owned(), ..Default::default()}), "Test", "Id", ".isUnique(\"Id\", \"check_uniqueness_Test_Id\")")]
+        #[case(ColumnRule::NonNull(NonNull {name: "".to_owned(), ..Default::default()}), "Table", "Column", ".isComplete(\"Column\", \"check_completeness_Table_Column\")")]
+        #[case(ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("INT", Some(4), None), ..Default::default()}), "Test", "Quantity", ".hasDataType(\"Quantity\", ConstrainableDataTypes.Numeric, lambda x: x >= 1)")]
+        #[case(ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("VarChar", Some(4), None), ..Default::default()}), "Test", "Description", ".hasDataType(\"Description\", ConstrainableDataTypes.String, lambda x: x >= 1)")]
+        #[case(ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("Float", Some(4), None), ..Default::default()}), "Test", "Price", ".hasDataType(\"Price\", ConstrainableDataTypes.Fractional, lambda x: x >= 1)")]
+        #[case(ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("Bool", None, None), ..Default::default()}), "Test", "Available", ".hasDataType(\"Available\", ConstrainableDataTypes.Boolean, lambda x: x >= 1)")]
+        #[case(ColumnRule::NotEmpty(NotEmpty {name: "".to_owned(), ..Default::default()}), "Test", "Value", ".satisfies(\"length(Value) > 0\", \"check_not_empty_Test_Value\", lambda x: x >= 1)")]
         pub fn test_compile_column_rule(
             #[case] column_rule: ColumnRule,
             #[case] table_name: String,
@@ -263,9 +298,10 @@ pub fn compile(table: TableDef) -> String {
 
 #[cfg(test)]
 mod tests {
+
     use crate::compiler::test_strings::pydeequ::PYTHON_PYDEEQU_RESULT_1;
     use crate::model::column_rule::{
-        ColumnRule, ContainsValue, IsType, LikePattern, NonNull, PrimaryKey, RegexPattern,
+        ColumnRule, ContainsValue, IsType, LikePattern, NonNull, NotEmpty, RegexPattern, Uniqueness,
     };
     use crate::model::table_expr::{ColumnDef, DataType, TableDef, TableRef};
 
@@ -284,7 +320,7 @@ mod tests {
                             name: "".to_string(),
                             ..Default::default()
                         }),
-                        ColumnRule::PrimaryKey(PrimaryKey {
+                        ColumnRule::Uniqueness(Uniqueness {
                             name: "".to_string(),
                             ..Default::default()
                         }),
@@ -295,10 +331,19 @@ mod tests {
                         }),
                         ColumnRule::LikePattern(LikePattern {
                             pattern: "%test%".to_string(),
+                            threshold: 0.5,
                             ..Default::default()
                         }),
                         ColumnRule::ContainsValue(ContainsValue {
                             value: "test".to_string(),
+                            threshold: 0.9,
+                            ..Default::default()
+                        }),
+                        ColumnRule::NotEmpty(NotEmpty {
+                            threshold: 0.9,
+                            ..Default::default()
+                        }),
+                        ColumnRule::Uniqueness(Uniqueness {
                             ..Default::default()
                         }),
                     ],
@@ -316,10 +361,16 @@ mod tests {
                         }),
                         ColumnRule::LikePattern(LikePattern {
                             pattern: "%test%".to_string(),
+                            threshold: 0.5,
                             ..LikePattern::default()
                         }),
                         ColumnRule::RegexPattern(RegexPattern {
                             pattern: "[0-9]*test[0-9]*".to_string(),
+                            threshold: 0.75,
+                            ..Default::default()
+                        }),
+                        ColumnRule::NotEmpty(NotEmpty {
+                            threshold: 0.75,
                             ..Default::default()
                         }),
                     ],

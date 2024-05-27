@@ -223,12 +223,12 @@ impl NotEmpty {
 }
 
 #[derive(Clone, Debug, PartialEq, ValidColumnRule)]
-pub struct PrimaryKey {
+pub struct Uniqueness {
     pub name: String,
     pub rule_ext_config: RuleExtConfig,
 }
 
-impl Default for PrimaryKey {
+impl Default for Uniqueness {
     fn default() -> Self {
         Self {
             name: String::new(),
@@ -237,7 +237,7 @@ impl Default for PrimaryKey {
     }
 }
 
-impl PrimaryKey {
+impl Uniqueness {
     pub fn new(name: Option<String>, rule_ext_config: Option<RuleExtConfig>) -> Self {
         Self {
             name: name.unwrap_or_default(),
@@ -284,7 +284,7 @@ pub enum ColumnRule {
     ContainsValue(ContainsValue),
     NonNull(NonNull),
     NotEmpty(NotEmpty),
-    PrimaryKey(PrimaryKey),
+    Uniqueness(Uniqueness),
     IsType(IsType),
 }
 
@@ -296,7 +296,7 @@ impl ValidColumnRule for ColumnRule {
             ColumnRule::ContainsValue(rule) => rule.validate_col_type(column),
             ColumnRule::NonNull(rule) => rule.validate_col_type(column),
             ColumnRule::NotEmpty(rule) => rule.validate_col_type(column),
-            ColumnRule::PrimaryKey(rule) => rule.validate_col_type(column),
+            ColumnRule::Uniqueness(rule) => rule.validate_col_type(column),
             ColumnRule::IsType(rule) => rule.validate_col_type(column),
             // _ => Err(ColumnValidationError::RuleValidationNotImplemented(
             //     String::from("rule validation not implemented"),
@@ -308,7 +308,7 @@ impl ValidColumnRule for ColumnRule {
 #[cfg(test)]
 pub mod test {
     use crate::model::column_rule::{
-        ColumnRule, ContainsValue, LikePattern, PrimaryKey, RegexPattern,
+        ColumnRule, ContainsValue, LikePattern, RegexPattern, Uniqueness,
     };
     use crate::model::rule_traits::ValidColumnRule;
     use crate::model::table_expr::{ColumnDef, DataType};
@@ -320,7 +320,7 @@ pub mod test {
     #[case(ColumnRule::LikePattern(LikePattern::new(None, "".to_owned(), None, None)),
     ColumnDef::new(String::from("test"), DataType::new("text", Some(3), None), false, false))]
     #[case(
-        ColumnRule::PrimaryKey(PrimaryKey::new(None, None)),
+        ColumnRule::Uniqueness(Uniqueness::new(None, None)),
         ColumnDef::new(
             String::from("test"),
             DataType::new("int", Some(3), None),
