@@ -132,3 +132,34 @@ impl FromStr for DataType {
         Ok(data_class::DataTypeExprParser::new().parse(name).unwrap())
     }
 }
+
+#[cfg(test)]
+pub mod test {
+    use rstest::rstest;
+    use crate::model::{column_rule::{NonNull, Uniqueness, IsType}, table_expr::{ColumnDef, ColumnRule, DataType}};
+
+    #[rstest]
+    #[case(ColumnDef {name: "Example".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: true, primary_key: true, rules: vec![
+        ColumnRule::NonNull(NonNull::new(None, None, None)),
+        ColumnRule::Uniqueness(Uniqueness::new(None, None)),
+        ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("Int", Some(3), None), ..Default::default()}),
+    ]}, "Example".to_owned(), true, true)]
+    #[case(ColumnDef {name: "Example".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: true, primary_key: false, rules: vec![
+        ColumnRule::NonNull(NonNull::new(None, None, None)),
+        ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("Int", Some(3), None), ..Default::default()}),
+    ]}, "Example".to_owned(), true, false)]
+    #[case(ColumnDef {name: "Example".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: false, primary_key: false, rules: vec![
+        ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("Int", Some(3), None), ..Default::default()}),
+    ]}, "Example".to_owned(), false, false)]
+    fn test_col_def_init(#[case] desired_col_def: ColumnDef, #[case] name: String,
+                         #[case] not_null: bool, #[case] primary_key: bool) {
+        let col_def = ColumnDef::new(
+            name,
+            desired_col_def.data_type.clone(),
+            not_null,
+            primary_key,
+        );
+        assert_eq!(desired_col_def, col_def);
+    }
+
+}
