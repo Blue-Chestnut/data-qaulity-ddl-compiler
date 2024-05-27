@@ -135,8 +135,11 @@ impl FromStr for DataType {
 
 #[cfg(test)]
 pub mod test {
+    use crate::model::{
+        column_rule::{IsType, NonNull, Uniqueness},
+        table_expr::{ColumnDef, ColumnRule, DataType},
+    };
     use rstest::rstest;
-    use crate::model::{column_rule::{NonNull, Uniqueness, IsType}, table_expr::{ColumnDef, ColumnRule, DataType}};
 
     #[rstest]
     #[case(ColumnDef {name: "Example".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: true, primary_key: true, rules: vec![
@@ -151,8 +154,12 @@ pub mod test {
     #[case(ColumnDef {name: "Example".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: false, primary_key: false, rules: vec![
         ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("Int", Some(3), None), ..Default::default()}),
     ]}, "Example".to_owned(), false, false)]
-    fn test_col_def_init(#[case] desired_col_def: ColumnDef, #[case] name: String,
-                         #[case] not_null: bool, #[case] primary_key: bool) {
+    fn test_col_def_init(
+        #[case] desired_col_def: ColumnDef,
+        #[case] name: String,
+        #[case] not_null: bool,
+        #[case] primary_key: bool,
+    ) {
         let col_def = ColumnDef::new(
             name,
             desired_col_def.data_type.clone(),
@@ -161,5 +168,4 @@ pub mod test {
         );
         assert_eq!(desired_col_def, col_def);
     }
-
 }
