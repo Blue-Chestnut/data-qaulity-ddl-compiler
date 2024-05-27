@@ -34,7 +34,7 @@ pub ColumnRuleExpr: ColumnRule = {
     r"(?i)-LIKE" <p:Text> <t:DecimalPercent?> => ColumnRule::LikePattern(LikePattern::new(None, p, None, t)),
     r"(?i)-CONTAINS" <p:Text> <t:DecimalPercent?> => ColumnRule::ContainsValue(ContainsValue::new(None, p, None, t)),
     r"(?i)-NOT_EMPTY" <t:DecimalPercent?> => ColumnRule::NotEmpty(NotEmpty::new(None, None, t)),
-    r"(?i)-UNIQUENESS" => ColumnRule::Uniqueness(Uniqueness::new(None, None)),
+    r"(?i)-UNIQUE" => ColumnRule::Uniqueness(Uniqueness::new(None, None)),
 };
 
 pub CreateTableString: bool = {

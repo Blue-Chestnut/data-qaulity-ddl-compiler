@@ -314,7 +314,7 @@ fn test_column_def_failure(#[case] input_value: &str) {
     ColumnRule::IsType(IsType {  name: "".to_owned(), data_type: DataType {
     class: DataClass::VarChar, size: Some([Some(20), None]) }, ..Default::default()}),]
 })]
-#[case("ISBN VARCHAR(20) { -uniqueness} ", ColumnDef {
+#[case("ISBN VARCHAR(20) { -unique} ", ColumnDef {
     name: String::from("ISBN"),
     data_type: DataType::new("VARCHAR", Some(20), None),
     not_null: false,

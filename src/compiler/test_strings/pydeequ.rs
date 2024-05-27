@@ -17,6 +17,8 @@ def column_level_checks_id(data_frame: DataFrame, spark_session: SparkSession) -
             .hasDataType(\"Id\", ConstrainableDataTypes.String, lambda x: x >= 1)
             .satisfies(\"Id LIKE '%test%'\", \"check_like_pattern_Test_Id\", lambda x: x >= 0.5)
             .hasPattern(\"Id\", r\"test\", lambda x: x >= 0.9, \"check_contains_value_Test_Id\")
+            .satisfies(\"length(Id) > 0\", \"check_not_empty_Test_Id\", lambda x: x >= 0.9)
+            .isUnique(\"Id\", \"check_uniqueness_Test_Id\")
         ).run()
 
         result_df = VerificationResult.checkResultsAsDataFrame(spark_session, check_result)

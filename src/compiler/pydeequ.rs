@@ -298,6 +298,7 @@ pub fn compile(table: TableDef) -> String {
 
 #[cfg(test)]
 mod tests {
+
     use crate::compiler::test_strings::pydeequ::PYTHON_PYDEEQU_RESULT_1;
     use crate::model::column_rule::{
         ColumnRule, ContainsValue, IsType, LikePattern, NonNull, NotEmpty, RegexPattern, Uniqueness,
@@ -336,6 +337,13 @@ mod tests {
                         ColumnRule::ContainsValue(ContainsValue {
                             value: "test".to_string(),
                             threshold: 0.9,
+                            ..Default::default()
+                        }),
+                        ColumnRule::NotEmpty(NotEmpty {
+                            threshold: 0.9,
+                            ..Default::default()
+                        }),
+                        ColumnRule::Uniqueness(Uniqueness {
                             ..Default::default()
                         }),
                     ],
