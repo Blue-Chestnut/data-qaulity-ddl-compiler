@@ -4,6 +4,6 @@ Create table if not exists Test {
         -REGEX "[0-9]*test[0-9]*",
         -CONTAINS "test" 0.9,
         -not_empty,
-        -unique},
+        -unique}
     Price FLOAT(3,8) PRIMARY KEY
 };

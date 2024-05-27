@@ -9,10 +9,8 @@ pub CreateTableExpr: Box<TableDef> = {
 };
 
 pub TableNameExpr: TableRef = {
-    <n:Identifier> => TableRef {table_name: n, ..Default::default()},
-    <s:Identifier> "." <t:Identifier> => TableRef {table_name: t, schema_name: Some(s), ..Default::default()},
-    <n:Identifier> <a: Text> => TableRef {table_name: n, alias: Some(a), ..Default::default()},
-    <s:Identifier> "." <t:Identifier> <a: Text> => TableRef {table_name: t, schema_name: Some(s), alias: Some(a)},
+    <n:Identifier> <a: Text?> => TableRef {table_name: n, alias: a, ..Default::default()},
+    <s:Identifier> "." <t:Identifier> <a: Text?> => TableRef {table_name: t, schema_name: Some(s), alias: a, ..Default::default()},
 }
 
 pub ColumnWithRulesExpr: ColumnDef = {
