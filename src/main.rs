@@ -45,6 +45,11 @@ impl Args {
 }
 
 pub fn main() {
+    // println!("{:?}", "Create table if not exists Test {".to_owned().len());
+    // println!("{:?}", "    Id Varchar(10) {".to_owned().len());
+    // println!("{:?}", "        -LIKE \"%test%\",".to_owned().len());
+    // println!("{:?}", "        -REGEX \"[0-9]*test[0-9]*\",.".to_owned().len());
+    // return;
     let args = Args::parse();
 
     println!("{:?}", args);
