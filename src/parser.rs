@@ -1,5 +1,5 @@
 use crate::model::table_expr::TableDef;
-use crate::parser::error_utils::gen_syntax_error_message;
+use crate::parser::error_utils::{gen_syntax_error_message, gen_unknown_token_error_message};
 use crate::{model::rule_traits::ValidColumnRule, parser::lines::Line};
 use lalrpop_util::{lalrpop_mod, ParseError};
 
@@ -18,13 +18,9 @@ pub fn parse(input_string: &str) -> Option<Box<TableDef>> {
         let err = table_def.unwrap_err();
         match err {
             ParseError::InvalidToken { location } => {
-                let line_number = Line::get_line(location as u32, &lines);
-                let current_line = lines.get(line_number);
-                panic!(
-                    "SyntaxError in line {}: Invalid token at {}",
-                    line_number,
-                    location - current_line.unwrap().start as usize
-                );
+                let message = gen_unknown_token_error_message(location, lines);
+
+                panic!("{}", message);
             }
             ParseError::UnrecognizedToken { token, expected } => {
                 let message = gen_syntax_error_message(token, lines, expected);
@@ -61,7 +57,7 @@ mod tests {
 
     #[test]
     fn test_parse() {
-        let table = parse("CREATE TABLE test {id INT(3), name VARCHAR(255)};");
+        let table = parse("CREATE TABLE test {id INT(3), name VARCHAR(255) {-not_empty}};");
         assert!(table.is_some());
     }
 
