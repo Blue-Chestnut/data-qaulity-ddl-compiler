@@ -6,6 +6,7 @@ use std::str::FromStr;
 
 lalrpop_mod!(pub data_class, "/model/data_class_parsing.rs");
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct TableDef {
     pub table_ref: TableRef,
     pub columns: Vec<ColumnDef>,
