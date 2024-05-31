@@ -1,6 +1,5 @@
 use filter::ColumnRuleFilter;
 
-pub mod condition;
 pub mod filter;
 pub mod operator;
 
@@ -42,12 +41,12 @@ pub fn combine_itentical_filters(
             // last_filter.rules.extend(filter.rules)
         } else {
             combined_filters.push(filter.to_owned());
-            last_filter_string = name.clone();
+            last_filter_string.clone_from(name);
             last_index += 1;
         }
     }
 
-    return combined_filters;
+    combined_filters
 }
 
 #[cfg(test)]

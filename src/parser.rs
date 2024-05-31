@@ -42,7 +42,7 @@ pub fn parse(input_string: &str) -> Result<Box<TableDef>, DDLxParseError> {
             _ => panic!("{:?}", err),
         }
     }
-    let mut table = table_def.unwrap();
+    let table = table_def.unwrap();
 
     let mut columns: Vec<ColumnDef> = vec![];
 
@@ -50,20 +50,15 @@ pub fn parse(input_string: &str) -> Result<Box<TableDef>, DDLxParseError> {
         let mut parsed_filters: Vec<ColumnRuleFilter> = vec![];
 
         for rule in &column.rules {
-            let filter_result = rule.parse();
-            if filter_result.is_err() {
-                return Err(filter_result.unwrap_err());
-            }
+            let filter_result = rule.parse()?;
 
-            let optimized_filter = filter_result.unwrap();
-            parsed_filters.push(optimized_filter.clone());
+            parsed_filters.push(filter_result.clone());
 
-            let result = optimized_filter.validate_col_type(column);
-            if result.is_err() {
-                return Err(DDLxParseError::ColumnValidationError(format!(
-                    "{:?}",
-                    result.unwrap_err()
-                )));
+            for col_rule in filter_result.rules {
+                let result = col_rule.validate_col_type(column);
+                if let Err(err) = result {
+                    return Err(DDLxParseError::ColumnValidationError(format!("{:?}", err)));
+                }
             }
         }
 

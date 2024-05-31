@@ -398,34 +398,40 @@ mod tests {
                     data_type: DataType::new("VarChar", Some(10), None),
                     not_null: false,
                     primary_key: false,
-                    rules: vec![ColumnRuleFilter {
-                        filter_condition: Some(FilterCondition::ValueCondition { field: "Price".to_owned(), operator: ComparisonOperator::GreaterThan, value: "1".to_owned() }),
-                        filter_string: Some("Price > 1".to_string()),
-                        rules: vec![
-                            ColumnRule::IsType(IsType {
+                    rules: vec![
+                        ColumnRuleFilter {
+                            filter_condition: Some(FilterCondition::ValueCondition {
+                                field: "Price".to_owned(),
+                                operator: ComparisonOperator::GreaterThan,
+                                value: "1".to_owned(),
+                            }),
+                            filter_string: Some("Price > 1".to_string()),
+                            rules: vec![ColumnRule::IsType(IsType {
                                 name: "".to_string(),
                                 data_type: DataType::new("VarChar", Some(10), None),
                                 ..Default::default()
-                            }),]},
+                            })],
+                        },
                         ColumnRuleFilter::new(
                             None,
                             vec![
-                            ColumnRule::LikePattern(LikePattern {
-                                pattern: "%test%".to_string(),
-                                threshold: 0.5,
-                                ..LikePattern::default()
-                            }),
-                            ColumnRule::RegexPattern(RegexPattern {
-                                pattern: "[0-9]*test[0-9]*".to_string(),
-                                threshold: 0.75,
-                                ..Default::default()
-                            }),
-                            ColumnRule::NotEmpty(NotEmpty {
-                                threshold: 0.75,
-                                ..Default::default()
-                            }),
-                        ],
-                    )],
+                                ColumnRule::LikePattern(LikePattern {
+                                    pattern: "%test%".to_string(),
+                                    threshold: 0.5,
+                                    ..LikePattern::default()
+                                }),
+                                ColumnRule::RegexPattern(RegexPattern {
+                                    pattern: "[0-9]*test[0-9]*".to_string(),
+                                    threshold: 0.75,
+                                    ..Default::default()
+                                }),
+                                ColumnRule::NotEmpty(NotEmpty {
+                                    threshold: 0.75,
+                                    ..Default::default()
+                                }),
+                            ],
+                        ),
+                    ],
                 },
                 ColumnDef {
                     name: "Test".to_string(),

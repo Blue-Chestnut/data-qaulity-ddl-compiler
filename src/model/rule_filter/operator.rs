@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum ComparisonOperator {
     GreaterThan,
@@ -8,9 +10,9 @@ pub enum ComparisonOperator {
     LessThanOrEqual,
 }
 
-impl ToString for ComparisonOperator {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for ComparisonOperator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
             ComparisonOperator::GreaterThan => ">",
             ComparisonOperator::LessThan => "<",
             ComparisonOperator::Equal => "=",
@@ -18,7 +20,8 @@ impl ToString for ComparisonOperator {
             ComparisonOperator::GreaterThanOrEqual => ">=",
             ComparisonOperator::LessThanOrEqual => "<=",
         }
-        .to_string()
+        .to_string();
+        write!(f, "{}", str)
     }
 }
 

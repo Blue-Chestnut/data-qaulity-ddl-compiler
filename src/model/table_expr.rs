@@ -94,17 +94,17 @@ impl ColumnDef {
         }
     }
 
-    pub fn new_with_rules(
-        name: String,
-        data_type: DataType,
-        not_null: bool,
-        primary_key: bool,
-        rules: Vec<ColumnRule>,
-    ) -> Self {
-        let mut column = Self::new(name, data_type, not_null, primary_key);
-        column.rules.push(ColumnRuleFilter::new(None, rules));
-        column
-    }
+    // pub fn new_with_rules(
+    //     name: String,
+    //     data_type: DataType,
+    //     not_null: bool,
+    //     primary_key: bool,
+    //     rules: Vec<ColumnRule>,
+    // ) -> Self {
+    //     let mut column = Self::new(name, data_type, not_null, primary_key);
+    //     column.rules.push(ColumnRuleFilter::new(None, rules));
+    //     column
+    // }
 
     pub fn new_with_rules_and_filter(
         name: String,

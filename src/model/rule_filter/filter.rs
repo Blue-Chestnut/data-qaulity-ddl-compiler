@@ -1,4 +1,5 @@
 use lalrpop_util::lalrpop_mod;
+use std::fmt::Display;
 
 use crate::model::column_rule::ColumnRule;
 use crate::model::rule_traits::{ColumnValidationError, ValidColumnRule};
@@ -30,14 +31,11 @@ impl PartialEq for FilterCondition {
     fn eq(&self, other: &Self) -> bool {
         self.sort().to_string() == other.sort().to_string()
     }
-
-    fn ne(&self, other: &Self) -> bool {
-        !self.eq(other)
-    }
 }
 
-impl ToString for FilterCondition {
-    fn to_string(&self) -> String {
+impl Display for FilterCondition {
+    #[allow(clippy::needless_return)]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             FilterCondition::And(conditions) => {
                 let filter_conditions_string = conditions
@@ -45,7 +43,7 @@ impl ToString for FilterCondition {
                     .map(|x| x.to_string())
                     .collect::<Vec<String>>()
                     .join(" AND ");
-                return format!("( {} )", filter_conditions_string);
+                return write!(f, "( {} )", filter_conditions_string);
             }
             FilterCondition::Or(conditions) => {
                 let filter_conditions_string = conditions
@@ -53,36 +51,32 @@ impl ToString for FilterCondition {
                     .map(|x| x.to_string())
                     .collect::<Vec<String>>()
                     .join(" OR ");
-                return format!("( {} )", filter_conditions_string);
+                return write!(f, "( {} )", filter_conditions_string);
             }
             FilterCondition::Not(condition) => {
-                return format!("NOT ( {} )", condition.to_string());
+                return write!(f, "NOT ( {} )", condition);
             }
             FilterCondition::FieldCondition {
                 first_field,
                 operator,
                 second_field,
             } => {
-                return format!(
-                    "( {} {} {} )",
-                    first_field,
-                    operator.to_string(),
-                    second_field
-                );
+                let str = format!("( {} {} {} )", first_field, operator, second_field);
+                return write!(f, "{}", str);
             }
             FilterCondition::ValueCondition {
                 field,
                 operator,
                 value,
             } => {
-                return format!("( {} {} {} )", field, operator.to_string(), value);
+                return write!(f, "( {} {} {} )", field, operator, value);
             }
-            _ => "".to_owned(),
-        }
+        };
     }
 }
 
 impl FilterCondition {
+    #[allow(clippy::needless_return)]
     pub fn reduce_nesting(&self) -> Self {
         match self {
             FilterCondition::And(conditions) => {
@@ -145,6 +139,7 @@ impl FilterCondition {
         Ok(parsed.unwrap().reduce_nesting())
     }
 
+    #[allow(clippy::needless_return)]
     pub fn sort(&self) -> Self {
         match self {
             FilterCondition::And(conditions) => {
@@ -162,11 +157,12 @@ impl FilterCondition {
         }
     }
 
-    fn sort_conditions(conditions: &Vec<FilterCondition>) -> Vec<FilterCondition> {
+    fn sort_conditions(conditions: &[FilterCondition]) -> Vec<FilterCondition> {
         let mut sorted_conditions = conditions
             .iter()
             .map(|x| {
                 let s = x.sort();
+                #[allow(clippy::needless_return)]
                 return (s.clone().to_string(), x.to_owned());
             })
             .collect::<Vec<(String, Self)>>();
@@ -176,7 +172,7 @@ impl FilterCondition {
             .iter()
             .map(|x| x.1.to_owned())
             .collect::<Vec<FilterCondition>>();
-        return filter_conditions;
+        filter_conditions
     }
 }
 
@@ -187,8 +183,8 @@ pub struct ColumnRuleFilter {
     pub filter_condition: Option<FilterCondition>,
 }
 
-impl ToString for ColumnRuleFilter {
-    fn to_string(&self) -> String {
+impl Display for ColumnRuleFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if (self.filter_string.as_ref().is_some()
             && !self.filter_string.as_ref().unwrap().is_empty())
             && self.filter_condition.is_none()
@@ -200,10 +196,10 @@ impl ToString for ColumnRuleFilter {
         }
 
         if self.filter_condition.is_none() {
-            return "".to_string();
+            return write!(f, "");
         }
 
-        return self.filter_condition.as_ref().unwrap().to_string();
+        write!(f, "{}", self.filter_condition.as_ref().unwrap())
     }
 }
 
@@ -221,11 +217,11 @@ impl ColumnRuleFilter {
     }
 
     pub fn new(filter_string: Option<String>, rules: Vec<ColumnRule>) -> ColumnRuleFilter {
-        return ColumnRuleFilter {
+        ColumnRuleFilter {
             filter_string,
             rules,
             filter_condition: None,
-        };
+        }
     }
 
     pub fn parse(&self) -> Result<Self, DDLxParseError> {
@@ -237,17 +233,13 @@ impl ColumnRuleFilter {
             });
         }
 
-        let mut filter_condition =
-            FilterCondition::from_str(self.filter_string.as_ref().unwrap().clone());
-
-        if filter_condition.is_err() {
-            return Err(filter_condition.unwrap_err());
-        }
+        let filter_condition =
+            FilterCondition::from_str(self.filter_string.as_ref().unwrap().clone())?;
 
         Ok(ColumnRuleFilter {
             filter_string: self.filter_string.clone(),
             rules: self.rules.to_owned(),
-            filter_condition: Some(filter_condition.unwrap()),
+            filter_condition: Some(filter_condition),
         })
     }
 }
