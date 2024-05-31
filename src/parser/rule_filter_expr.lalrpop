@@ -1,0 +1,49 @@
+use crate::model::rule_filter::operator::ComparisonOperator;
+use crate::model::rule_filter::filter::FilterCondition;
+
+grammar;
+
+pub RuleFilterExpr: FilterCondition = {
+    #[precedence(level="0")]
+    <a:AndOrFilterConditionExpr> => a,
+    #[precedence(level="2")] #[assoc(side="left")]
+    <a:RuleFilterExpr> "&&" <rf:RuleFilterExpr> => FilterCondition::And(vec![a, rf]),
+    #[precedence(level="3")] #[assoc(side="left")]
+    <a:RuleFilterExpr> "||" <rf:RuleFilterExpr> => FilterCondition::Or(vec![a, rf]),
+}
+
+AndOrFilterConditionExpr: FilterCondition = {
+    #[precedence(level="0")]
+    <a:RuleFilterComparisionExpr> => a,
+    #[precedence(level="1")] #[assoc(side="left")]
+    "(" <a:RuleFilterExpr> ")" => a,
+    #[precedence(level="2")] #[assoc(side="left")]
+    "!" <a:AndOrFilterConditionExpr> => FilterCondition::Not(Box::new(a))
+}
+
+
+
+pub RuleFilterComparisionExpr: FilterCondition = {
+    <i1:Identifier> <c:ComparisonOperatorExpr> <i2:Identifier> => 
+    FilterCondition::FieldCondition {first_field: i1, operator: c, second_field: i2},
+    <i:Identifier> <c:ComparisonOperatorExpr> <t:Text> => 
+    FilterCondition::ValueCondition{field: i, operator: c, value: t},
+    <i:Identifier> <c:ComparisonOperatorExpr> <f:NumberValue> => 
+    FilterCondition::ValueCondition{field: i, operator: c, value: f},
+}
+
+pub ComparisonOperatorExpr: ComparisonOperator = {
+    ">" => ComparisonOperator::GreaterThan,
+    ">=" => ComparisonOperator::GreaterThanOrEqual,
+    "=>" => ComparisonOperator::GreaterThanOrEqual,
+    "<" => ComparisonOperator::LessThan,
+    "<=" => ComparisonOperator::LessThanOrEqual,
+    "=<" => ComparisonOperator::LessThanOrEqual,
+    "=" => ComparisonOperator::Equal,
+    "!=" => ComparisonOperator::NotEqual,
+    "<>" => ComparisonOperator::NotEqual,
+}
+
+Text: String = <s:r#"('[^['"]]+')"#> => s.to_owned()[1..(s.len()-1)].to_string();
+Identifier: String = <s:r"[a-zA-Z_][a-zA-Z0-9\-_]*"> => s.to_owned();
+NumberValue: String = <s:r"(-?[1-9][0-9]*(\.[0-9]*)?)|(-?0\.[0-9]*[1-9])|0|0."> => s.to_owned();

@@ -4,7 +4,9 @@ use lalrpop_util::lalrpop_mod;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
-lalrpop_mod!(pub data_class, "/model/data_class_parsing.rs");
+use super::rule_filter::filter::ColumnRuleFilter;
+
+lalrpop_mod!(pub data_class, "/parser/data_class_parsing.rs");
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TableDef {
@@ -62,7 +64,7 @@ pub struct ColumnDef {
     pub data_type: DataType,
     pub not_null: bool,
     pub primary_key: bool,
-    pub rules: Vec<ColumnRule>,
+    pub rules: Vec<ColumnRuleFilter>,
 }
 
 impl ColumnDef {
@@ -88,7 +90,7 @@ impl ColumnDef {
             data_type,
             not_null,
             primary_key,
-            rules,
+            rules: vec![ColumnRuleFilter::empty_fr_rules(rules)],
         }
     }
 
@@ -98,6 +100,18 @@ impl ColumnDef {
         not_null: bool,
         primary_key: bool,
         rules: Vec<ColumnRule>,
+    ) -> Self {
+        let mut column = Self::new(name, data_type, not_null, primary_key);
+        column.rules.push(ColumnRuleFilter::new(None, rules));
+        column
+    }
+
+    pub fn new_with_rules_and_filter(
+        name: String,
+        data_type: DataType,
+        not_null: bool,
+        primary_key: bool,
+        rules: Vec<ColumnRuleFilter>,
     ) -> Self {
         let mut column = Self::new(name, data_type, not_null, primary_key);
         column.rules.extend(rules);
@@ -138,23 +152,27 @@ impl FromStr for DataType {
 pub mod test {
     use crate::model::{
         column_rule::{IsType, NonNull, Uniqueness},
+        rule_filter::filter::ColumnRuleFilter,
         table_expr::{ColumnDef, ColumnRule, DataType},
     };
     use rstest::rstest;
 
     #[rstest]
-    #[case(ColumnDef {name: "Example".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: true, primary_key: true, rules: vec![
+    #[case(ColumnDef {name: "Example".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: true, primary_key: true, rules: 
+    vec![ColumnRuleFilter::empty_fr_rules(vec![
         ColumnRule::NonNull(NonNull::new(None, None, None)),
         ColumnRule::Uniqueness(Uniqueness::new(None, None)),
         ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("Int", Some(3), None), ..Default::default()}),
-    ]}, "Example".to_owned(), true, true)]
-    #[case(ColumnDef {name: "Example".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: true, primary_key: false, rules: vec![
+    ])]}, "Example".to_owned(), true, true)]
+    #[case(ColumnDef {name: "Example".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: true, primary_key: false, rules: 
+    vec![ColumnRuleFilter::empty_fr_rules(vec![
         ColumnRule::NonNull(NonNull::new(None, None, None)),
         ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("Int", Some(3), None), ..Default::default()}),
-    ]}, "Example".to_owned(), true, false)]
-    #[case(ColumnDef {name: "Example".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: false, primary_key: false, rules: vec![
+    ])]}, "Example".to_owned(), true, false)]
+    #[case(ColumnDef {name: "Example".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: false, primary_key: false, rules: 
+    vec![ColumnRuleFilter::empty_fr_rules(vec![
         ColumnRule::IsType(IsType {name: "".to_owned(), data_type: DataType::new("Int", Some(3), None), ..Default::default()}),
-    ]}, "Example".to_owned(), false, false)]
+    ])]}, "Example".to_owned(), false, false)]
     fn test_col_def_init(
         #[case] desired_col_def: ColumnDef,
         #[case] name: String,

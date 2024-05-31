@@ -1,6 +1,14 @@
 use crate::parser::lines::Line;
 use lalrpop_util::lexer::Token;
 
+#[derive(Debug)]
+pub enum DDLxParseError {
+    UnknownToken(String),
+    SyntaxError(String),
+    ColumnValidationError(String),
+    InvalidFilterCondition(String),
+}
+
 pub fn gen_unknown_token_error_message(location: usize, lines: Vec<Line>) -> String {
     let line_number = Line::get_line(location as u32, &lines);
     let current_line = lines.get(line_number).unwrap();

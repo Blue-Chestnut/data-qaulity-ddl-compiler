@@ -58,8 +58,8 @@ pub fn main() {
 
     let table_def = parser::parse(input_string.as_str());
 
-    if table_def.is_none() {
-        panic!("Failed to parse input");
+    if table_def.is_err() {
+        panic!("Failed to parse input {:?}", table_def.err());
     }
     let table_def = *table_def.unwrap();
 
