@@ -15,6 +15,7 @@ tera = "1"
 serde = { version = "1.0.201", features = ["derive"] }
 clap = { version = "4.5.4", features = ["derive"] }
 valid_column_rule_derive = {path = "./valid_column_rule_derive"}
+log = "0.4.21"
 
 [build]
 rustflags = ["-Z", "threads=8"]

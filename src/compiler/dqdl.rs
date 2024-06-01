@@ -46,14 +46,20 @@ pub fn compile_column_rule(
 pub fn compile(table_def: TableDef) -> String {
     let mut compiled = String::new();
     for column_def in table_def.columns {
-        for rule in column_def.rules {
-            let compiled_rule = compile_column_rule(
-                rule,
-                table_def.table_ref.to_string().clone(),
-                column_def.name.clone(),
-            );
-            compiled.push_str(&compiled_rule);
-            compiled.push_str(",\n");
+        for filter in column_def.rules {
+            if filter.filter_string.is_some() {
+                log::warn!("custom filters are not supported for DQDL at the moment!")
+            }
+
+            for rule in filter.rules {
+                let compiled_rule = compile_column_rule(
+                    rule,
+                    table_def.table_ref.to_string().clone(),
+                    column_def.name.clone(),
+                );
+                compiled.push_str(&compiled_rule);
+                compiled.push_str(",\n");
+            }
         }
     }
     compiled
@@ -64,6 +70,7 @@ mod tests {
     use crate::model::column_rule::{
         ColumnRule, ContainsValue, IsType, LikePattern, NonNull, NotEmpty, RegexPattern, Uniqueness,
     };
+    use crate::model::rule_filter::filter::ColumnRuleFilter;
     use crate::model::table_expr::{ColumnDef, DataType, TableDef, TableRef};
     use rstest::rstest;
 
@@ -114,12 +121,13 @@ mod tests {
         ColumnDef::new("Id".to_owned(), DataType::new("INT", Some(3), None), false, false)
     ]}, "ColumnDataType \"Id\" = \"Int\",\n")]
     #[case(TableDef {table_ref: TableRef::new("Test", None, None), columns: vec![
-        ColumnDef {name: "Id".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: false, primary_key: false, rules: vec![
+        ColumnDef {name: "Id".to_owned(), data_type: DataType::new("INT", Some(3), None), not_null: false, primary_key: false, rules: 
+        vec![ColumnRuleFilter::new(None, vec![
             ColumnRule::Uniqueness(Uniqueness::new(None, None)),
             ColumnRule::NonNull(NonNull::new(None, None, None)),
             ColumnRule::NotEmpty(NotEmpty::new(None, None, None)),
             ColumnRule::ContainsValue(ContainsValue::new(None, "test".to_owned(), None, None)),
-        ]}
+        ])]}
     ]}, "IsPrimaryKey \"Id\",\nIsComplete \"Id\",\nColumnLength \"Id\" > 0,\nCustomSql \"select count() from Test where Id like '%test%' \",\n")]
     pub fn compile_test(#[case] table_def: TableDef, #[case] expected: &str) {
         let compiled = compile(table_def);

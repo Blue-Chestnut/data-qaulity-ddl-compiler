@@ -7,19 +7,37 @@ from pydeequ.verification import VerificationSuite, VerificationResult
 {% for column_level_check in column_level_checks %}
 def column_level_checks_{{column_level_check["column_name"]|lower}}(data_frame: DataFrame, spark_session: SparkSession) -> tuple[str, DataFrame | None]:
     try:
+        data_frames = []
+        {% for filter in column_level_check["filter_checks"] -%} {%if filter["has_filter"]%}
+        data_frame_filtered = data_frame.filter("{{filter["filter"]}}")
         check = Check(spark_session, CheckLevel.Warning,
-                      "{{column_level_check["description"]}}")
-        check_result = VerificationSuite(spark_session).onData(data_frame).addCheck(
-            check{% for check in column_level_check["checks"] %}
+                      "{{filter["description"]}}")
+        check_result = VerificationSuite(spark_session).onData(data_frame_filtered).addCheck(
+            check{% for check in filter["checks"] %}
             {{check}}
             {%- endfor %}
-        ).run()
+        ).run(){%else%}
+        check = Check(spark_session, CheckLevel.Warning,
+                      "{{filter["description"]}}")
+        check_result = VerificationSuite(spark_session).onData(data_frame).addCheck(
+            check{% for check in filter["checks"] %}
+            {{check}}
+            {%- endfor %}
+        ).run(){%endif%}
 
         result_df = VerificationResult.checkResultsAsDataFrame(spark_session, check_result)
-
         result_df = (result_df.withColumn("check_category", lit("column level"))
-                     .withColumn("columns", lit("{{column_level_check["ext_column_name"]|lower}}")))
-        return 'success', result_df
+                     .withColumn("columns", lit("{{column_level_check["ext_column_name"]|lower}}"))
+                     .withColumn("filter", lit("{{filter["filter"]}}")))
+        data_frames.append(result_df)
+        {% endfor %}
+        final_df = None
+        for result_df in data_frames:
+            if final_df is None:
+                final_df = result_df
+            else:
+                final_df = final_df.union(result_df)
+        return 'success', final_df
 
     except Exception as e:
         return f'failure: {e}', None
