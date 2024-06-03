@@ -1,6 +1,7 @@
 use crate::model::column_rule::{ColumnRule, IsType, NonNull, Uniqueness};
 use crate::model::data_class::DataClass;
 use lalrpop_util::lalrpop_mod;
+use serde::Serialize;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
@@ -58,7 +59,7 @@ impl Display for TableRef {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Default)]
+#[derive(Clone, Debug, PartialEq, Default, Serialize)]
 pub struct ColumnDef {
     pub name: String,
     pub data_type: DataType,
@@ -119,7 +120,7 @@ impl ColumnDef {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Default)]
+#[derive(Clone, Debug, PartialEq, Default, Serialize)]
 pub struct DataType {
     pub class: DataClass,
     pub size: Option<[Option<u32>; 2]>,

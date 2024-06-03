@@ -1,4 +1,6 @@
-#[derive(Clone, Debug, PartialEq)]
+use serde::Serialize;
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct RuleExtConfig {
     name: String,
     description: String,
@@ -34,7 +36,7 @@ impl RuleExtConfig {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum ScheduleFrequency {
     Daily,
     // Weekly,

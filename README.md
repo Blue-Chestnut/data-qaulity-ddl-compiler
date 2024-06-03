@@ -70,6 +70,14 @@ DDLx is type safe and checks this at compile time. This means that if
 
 `cargo run -- -t py-deequ -f "examples/dq-ddl-examples/create-table-with-check.sqlx" -o test.py`
 
+generate checks
+`cargo run -- -t py-deequ -f C:\Users\hamac\Documents\Professional\BlueChestnut\Products\DataQualityDDL\data-quality-ddl-compiler-python-test\pyspark_gen_test\data\example_schema.sql -o C:\Users\hamac\Documents\Professional\BlueChestnut\Products\DataQualityDDL\data-quality-ddl-compiler-python-test\ddl_dq_example\test.py`
+
+C:\Users\hamac\Documents\Professional\BlueChestnut\Products\DataQualityDDL\data-quality-ddl-compiler-python-test\pyspark_gen_test\gen\example.py
+
+generate class
+`cargo run -- -t py-spark-class -f "examples/dq-ddl-examples/create-table-with-check-filter.sql" -o C:\Users\hamac\Documents\Professional\BlueChestnut\Products\DataQualityDDL\data-quality-ddl-compiler-python-test\pyspark_gen_test\gen\example.py`
+
 ## Ways of Working
 
 ### Pushing Code

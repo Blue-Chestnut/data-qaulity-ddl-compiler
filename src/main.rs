@@ -1,5 +1,6 @@
 use crate::compiler::dqdl;
 use crate::compiler::pydeequ;
+use crate::compiler::pyspark_class;
 use crate::compiler::CompilationTarget;
 use clap::Parser;
 use std::fs::{read_to_string, File};
@@ -66,6 +67,7 @@ pub fn main() {
     let compiled: String = match args.target {
         CompilationTarget::PyDeequ => pydeequ::compile(table_def),
         CompilationTarget::Dqdl => dqdl::compile(table_def),
+        CompilationTarget::PySparkClass => pyspark_class::compile(table_def),
         _ => unimplemented!("Cannot compile to target: {:?}", args.target),
     };
 

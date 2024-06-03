@@ -1,4 +1,5 @@
 use lalrpop_util::lalrpop_mod;
+use serde::Serialize;
 use std::fmt::Display;
 
 use crate::model::column_rule::ColumnRule;
@@ -10,7 +11,7 @@ use super::operator::ComparisonOperator;
 
 lalrpop_mod!(pub rule, "/parser/rule_filter_expr.rs");
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub enum FilterCondition {
     And(Vec<FilterCondition>),
     Or(Vec<FilterCondition>),
@@ -176,7 +177,7 @@ impl FilterCondition {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct ColumnRuleFilter {
     pub filter_string: Option<String>,
     pub rules: Vec<ColumnRule>,

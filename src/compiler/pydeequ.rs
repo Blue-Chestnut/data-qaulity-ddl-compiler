@@ -302,7 +302,7 @@ impl ColumnLevelCheck {
 }
 
 pub fn compile_column_level_checks(columns: Vec<ColumnDef>, table: &TableDef) -> String {
-    let tera = match Tera::new("templates/pydeequ/**/*.py") {
+    let tera = match Tera::new("templates/gen_pyspark/**/*.py") {
         Ok(t) => t,
         Err(e) => {
             println!("Parsing error(s): {}", e);
