@@ -1,6 +1,8 @@
 use std::fmt::Display;
 
-#[derive(Debug, PartialEq, Clone)]
+use serde::Serialize;
+
+#[derive(Debug, PartialEq, Clone, Serialize)]
 pub enum ComparisonOperator {
     GreaterThan,
     LessThan,

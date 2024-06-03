@@ -1,4 +1,6 @@
-#[derive(Clone, Debug, PartialEq, Default)]
+use serde::Serialize;
+
+#[derive(Clone, Debug, PartialEq, Default, Serialize)]
 #[allow(dead_code)]
 pub enum DataClass {
     // Unknown,
@@ -20,6 +22,7 @@ pub enum DataClass {
     MediumBlob,
     LongText,
     LongBlob,
+    String,
     // Enum,
     // Set,
     // Numeric Types
@@ -64,6 +67,7 @@ impl DataClass {
                 | DataClass::MediumBlob
                 | DataClass::LongText
                 | DataClass::LongBlob
+                | DataClass::String
         )
     }
 

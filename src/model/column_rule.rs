@@ -1,9 +1,10 @@
 use crate::model::rule_ext_config::RuleExtConfig;
 use crate::model::rule_traits::{ColumnValidationError, ValidColumnRule};
 use crate::model::table_expr::{ColumnDef, DataType};
+use serde::Serialize;
 use valid_column_rule_derive::ValidColumnRule;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct LikePattern {
     pub name: String,
     pub pattern: String,
@@ -51,7 +52,7 @@ impl LikePattern {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct RegexPattern {
     pub name: String,
     pub pattern: String,
@@ -99,7 +100,7 @@ impl RegexPattern {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct ContainsValue {
     pub name: String,
     pub value: String,
@@ -147,7 +148,7 @@ impl ContainsValue {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, ValidColumnRule)]
+#[derive(Clone, Debug, PartialEq, Serialize, ValidColumnRule)]
 pub struct NonNull {
     pub name: String,
     pub rule_ext_config: RuleExtConfig,
@@ -178,7 +179,7 @@ impl NonNull {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct NotEmpty {
     pub name: String,
     pub rule_ext_config: RuleExtConfig,
@@ -222,7 +223,7 @@ impl NotEmpty {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, ValidColumnRule)]
+#[derive(Clone, Debug, PartialEq, Serialize, ValidColumnRule)]
 pub struct Uniqueness {
     pub name: String,
     pub rule_ext_config: RuleExtConfig,
@@ -246,7 +247,7 @@ impl Uniqueness {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, ValidColumnRule)]
+#[derive(Clone, Debug, PartialEq, Serialize, ValidColumnRule)]
 pub struct IsType {
     pub name: String,
     pub data_type: DataType,
@@ -277,7 +278,7 @@ impl IsType {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum ColumnRule {
     LikePattern(LikePattern),
     RegexPattern(RegexPattern),
