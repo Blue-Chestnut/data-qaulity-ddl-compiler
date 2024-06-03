@@ -1,10 +1,7 @@
 use serde::Serialize;
 use tera::{Context, Tera};
 
-use crate::model::{
-    data_class::DataClass,
-    table_expr::TableDef,
-};
+use crate::model::{data_class::DataClass, table_expr::TableDef};
 
 #[derive(Debug, Serialize)]
 pub struct PySparkDataClassColumn {
